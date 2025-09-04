@@ -1,68 +1,96 @@
 import React, { useState } from "react";
-import {
-  Avatar,
-  Button,
-  TextField,
-  Link,
-  Grid,
-  Box,
-  Typography,
-  Container,
-} from "@mui/material";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { Avatar,Button,TextField,Grid,Box,Typography,Container,Alert,CircularProgress,IconButton,InputAdornment } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import CssBaseline from "@mui/material/CssBaseline";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import { login } from "../services/authService";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { useNavigate} from "react-router-dom";
+import Link from '@mui/material/Link';
+import { login } from '../services/authService';
+
+// Define a validation schema for the login form using Yup
+const validationSchema = yup.object({
+  email: yup
+    .string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+  password: yup.string().required("Password is required"),
+});
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+  });
+
+  // Toggle password visibility
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault(); // Prevents the password field from losing focus
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  // This function is called when the form is submitted and validated
+  const onSubmit = async (data) => {
     try {
-      var email = form.email;
-      var password = form.password;
-      const data = await login({ email, password });
-      sessionStorage.setItem("token", data.token);
-      alert("Login Success!");
+      setServerError(""); // Reset previous errors
+      const response = await login(data);
+      sessionStorage.setItem("token", response.token); 
+      navigate("/dashboard"); // Redirect to the main app page after success
     } catch (err) {
-      alert("Login Failed");
-    }  
+      const errorMessage =
+        err.response?.data?.message || "Login failed. Please check your credentials.";
+      setServerError(errorMessage);
+      console.error(err);
+    }
   };
 
- return (
+  return (
     <Box
       sx={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh", //
-        backgroundColor: "#f5f5f5",
+        minHeight: "100vh",
+        backgroundColor: (theme) => theme.palette.grey[100],
       }}
     >
       <Container component="main" maxWidth="xs">
-        <CssBaseline />
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            p: 3,
+            p: 4,
             borderRadius: 2,
-            boxShadow: 3,
+            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.08)",
             backgroundColor: "white",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "black" }}>
+          <Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
             <LockOutlinedIcon />
           </Avatar>
-          <Typography variant="h4">Login</Typography>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold' }}>
+            Welcome Back
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Sign in to access your services
+          </Typography>
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            sx={{ mt: 1, width: "100%" }}
+          >
+            {serverError && <Alert severity="error" sx={{ mb: 2, width: '100%' }}>{serverError}</Alert>}
             <TextField
               margin="normal"
               required
@@ -72,7 +100,9 @@ export default function Login() {
               name="email"
               autoComplete="email"
               autoFocus
-              onChange={handleChange}
+              {...register("email")}
+              error={!!errors.email}
+              helperText={errors.email?.message}
             />
             <TextField
               margin="normal"
@@ -80,32 +110,42 @@ export default function Login() {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"} // Dynamically set type
               id="password"
               autoComplete="current-password"
-              onChange={handleChange}
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
+              {...register("password")}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              InputProps={{ // Add the icon button to the input
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              disabled={isSubmitting}
+              sx={{ mt: 3, mb: 2, py: 1.5 }}
             >
-              Sign In
+              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
             </Button>
-            <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2" marginRight={"20px"}>
-                  Forgot password?
-                </Link>
-              </Grid>
-              <Grid item>
-                <Link href="#" variant="body2">
-                  {"Don't have an account? Sign Up"}
+            <Grid container spacing={1} justifyContent="flex-end">
+              <Grid item xs >
+                 <Link  href="/forgot-password" style={{ textDecoration: 'none' }}>
+                  <Typography color="primary.main" variant="body2">
+                    Forgot password?
+                  </Typography>
                 </Link>
               </Grid>
             </Grid>
