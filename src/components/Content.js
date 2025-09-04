@@ -84,15 +84,13 @@ export default function Content() {
             Empowering healthcare providers with cutting-edge technology for
             superior patient care, streamlined operations, and enhanced outcomes.
           </Typography>
-          <Button
+            <Button
             variant="contained"
             color="black"
             size="large"
             endIcon={<ArrowForward />}
-            onClick={() => {
-              window.location.href = "/login";
-            }}
-          >
+            href="/Login"
+            >
             Get Started Today
           </Button>
         </Container>

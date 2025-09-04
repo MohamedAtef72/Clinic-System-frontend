@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MenuIcon from "@mui/icons-material/Menu";
+import Link from '@mui/material/Link';
 
 export default function Navbar() {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -23,10 +24,12 @@ export default function Navbar() {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
-          {/* Logo / Title */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Clinic System
-          </Typography>
+          {/* Logo / Title - Correctly styled */}
+            <Typography variant="h5" component="div" sx={{ flexGrow: 1 , fontWeight: 'bold'}}>
+              <Link href="/" underline="none" color="white">
+                MedClinic Pro
+              </Link>
+            </Typography>
 
           {/* Menu Button */}
           <IconButton
@@ -39,16 +42,26 @@ export default function Navbar() {
             <MenuIcon />
           </IconButton>
 
-          {/* Dropdown Menu */}
+          {/* Dropdown Menu - Corrected for client-side routing */}
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
+            // Better positioning
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
           >
-            <MenuItem onClick={handleMenuClose}>Login</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Register as Doctor</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Register as Patient</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Register as Receptionist</MenuItem>
+            {/* Each MenuItem now uses RouterLink and closes the menu on click */}
+            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/login" onClick={handleMenuClose}>Login</MenuItem>
+            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/doctor-register" onClick={handleMenuClose}>Register as Doctor</MenuItem>
+            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/patient-register" onClick={handleMenuClose}>Register as Patient</MenuItem>
+            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/receptionist-register" onClick={handleMenuClose}>Register as Receptionist</MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
