@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Cookies from "js-cookie";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -44,6 +45,7 @@ export default function Login() {
       setServerError(""); // Reset previous errors
       const response = await login(data);
       sessionStorage.setItem("token", response.token); 
+      Cookies.set('refreshToken', response.refreshToken, { expires: 7 });
       navigate("/dashboard"); // Redirect to the main app page after success
     } catch (err) {
       const errorMessage =

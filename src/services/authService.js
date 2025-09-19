@@ -29,3 +29,24 @@ export const getAllSpecialities = async () => {
     return [];
   }
 };
+
+export const userProfile = async () => {
+  try {
+    const response = await api.get("/User/UserProfile");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching User Data:", error);
+    throw error;
+  }
+};
+
+export const userUpdate = async (formData) => {
+  try {
+    const response = await api.put("/User/UpdateProfile", formData);
+    console.log(response);
+    return response;
+  } catch (error) {
+    console.error("Error updating User Data:", error);
+    throw error;
+  } 
+};

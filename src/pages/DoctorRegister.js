@@ -136,7 +136,7 @@ export default function DoctorRegister() {
             const response = await doctorRegister(formData);
             console.log(response.message);
             // Redirect to a login page or dashboard on success
-            navigate("/login");
+            navigate("/");
         } catch (error) {
             const errorMessage =
                 error.response?.data?.message || "Registration failed. Please try again.";
