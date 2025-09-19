@@ -5,6 +5,8 @@ import PatientRegister from "./pages/PatientRegister";
 import ReceptionistRegister from "./pages/Receptionistregister";
 import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
+import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/doctor-register" element={<DoctorRegister />} />
           <Route path="/patient-register" element={<PatientRegister />} />
           <Route path="/receptionist-register" element={<ReceptionistRegister />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
         </Routes>
       </Router>
     </div>

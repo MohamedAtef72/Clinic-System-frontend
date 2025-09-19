@@ -7,10 +7,32 @@ import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MenuIcon from "@mui/icons-material/Menu";
-import Link from '@mui/material/Link';
+import Link from "@mui/material/Link";
+import Cookies from "js-cookie";
+import {jwtDecode} from "jwt-decode";
 
 export default function Navbar() {
+  const token = sessionStorage.getItem("token");
+
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [role, setRole] = React.useState(null);
+
+  React.useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+
+        const roles =
+          decoded["role"] ||
+          decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+
+        setRole(Array.isArray(roles) ? roles[0] : roles);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+  }, [token]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -20,16 +42,43 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    Cookies.remove("refreshToken");
+    setRole(null);
+  };
+
+  let navItems = [];
+
+  if (token) {
+    navItems = [
+      { text: "Profile", path: "/profile" },
+      ...(role === "Admin" ? [{ text: "Dashboard", path: "/admin" } , {text: "AddDoctor" , path:"/doctor-register"},{text: "AddReceptionist" , path:"/receptionist-register"}] : []),
+      ...(role === "Receptionist" ? [{text: "AddPatient" , path:"/patient-register"}] : []),
+
+      { text: "Logout", path: "/login", isLogout: true },
+    ];
+  } else {
+    navItems = [
+      { text: "Login", path: "/login" },
+      { text: "Register as Patient", path: "/patient-register" },
+    ];
+  }
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
-          {/* Logo / Title - Correctly styled */}
-            <Typography variant="h5" component="div" sx={{ flexGrow: 1 , fontWeight: 'bold'}}>
-              <Link href="/" underline="none" color="white">
-                MedClinic Pro
-              </Link>
-            </Typography>
+          {/* Logo / Title */}
+          <Typography
+            variant="h5"
+            component="div"
+            sx={{ flexGrow: 1, fontWeight: "bold" }}
+          >
+            <Link href="/" underline="none" color="white">
+              MedClinic Pro
+            </Link>
+          </Typography>
 
           {/* Menu Button */}
           <IconButton
@@ -42,26 +91,36 @@ export default function Navbar() {
             <MenuIcon />
           </IconButton>
 
-          {/* Dropdown Menu - Corrected for client-side routing */}
+          {/* Dropdown Menu */}
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
-            // Better positioning
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
           >
-            {/* Each MenuItem now uses RouterLink and closes the menu on click */}
-            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/login" onClick={handleMenuClose}>Login</MenuItem>
-            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/doctor-register" onClick={handleMenuClose}>Register as Doctor</MenuItem>
-            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/patient-register" onClick={handleMenuClose}>Register as Patient</MenuItem>
-            <MenuItem sx={{fontWeight: 'bold'}} component={Link} href="/receptionist-register" onClick={handleMenuClose}>Register as Receptionist</MenuItem>
+            {navItems.map((item) =>
+              item.isLogout ? (
+                <MenuItem
+                  key={item.text}
+                  component={Link}
+                  href={item.path}
+                  onClick={() => {
+                    handleMenuClose();
+                    handleLogout();
+                  }}
+                >
+                  {item.text}
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  key={item.text}
+                  onClick={handleMenuClose}
+                  component={Link}
+                  href={item.path}
+                >
+                  {item.text}
+                </MenuItem>
+              )
+            )}
           </Menu>
         </Toolbar>
       </AppBar>
