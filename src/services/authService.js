@@ -5,6 +5,17 @@ export const login = async (data) => {
   return response.data;
 };
 
+export const logout = async (data) => {
+  const response = await api.get("/Auth/Logout");
+  return response.data;
+};
+
+export const currentUser = async () => {
+  const response = await api.get("/Auth/Me");
+  console.log(response.data);
+  return response.data;
+}
+
 export const doctorRegister = async (data) => {
   const response = await api.post("/Auth/DoctorRegister", data);
   return response.data;
@@ -48,5 +59,25 @@ export const userUpdate = async (formData) => {
   } catch (error) {
     console.error("Error updating User Data:", error);
     throw error;
+  } 
+};
+
+export const getAllDoctors = async (pageNumber) => {
+  try {
+    const response = await api.get("/Doctor/AllDoctors?pageNumber=" + pageNumber);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching doctors:", error);
+    return [];
+  }
+};
+
+export const getDoctorById = async (id) => {
+  try {
+    const response = await api.get(`/Doctor/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching doctor by ID:", error);
+    return null;
   } 
 };

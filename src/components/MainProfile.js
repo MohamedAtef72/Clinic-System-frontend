@@ -16,7 +16,7 @@ export default function MainProfile({ user }) {
   return (
     <>
       <Card sx={{ p: 3, textAlign: "center", mb: 3 }}>
-        <Avatar src={user.user.imagePath} sx={{ width: 150, height: 150, mx: "auto", mb: 2 }} />
+        <Avatar src={user.user.imagePath} sx={{ width: 200, height: 200, mx: "auto", mb: 2 }} />
         <Typography variant="h5" fontWeight="bold">{user.user.userName}</Typography>
         <Typography variant="body1" color="text.secondary">{user.user.email}</Typography>
         <Typography variant="body2" color="text.secondary">{user.role[0]}</Typography>
