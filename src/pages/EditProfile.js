@@ -58,7 +58,7 @@ export default function EditProfile() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file);
+      setImage(file); 
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -124,7 +124,12 @@ export default function EditProfile() {
               startIcon={<PhotoCamera />}
             >
               Change Picture
-              <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleImageChange}
+            />
             </Button>
           </Box>
 

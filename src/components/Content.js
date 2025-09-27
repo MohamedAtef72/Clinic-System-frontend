@@ -1,8 +1,11 @@
 import React from "react";
 import { Typography,Container,Box,Button,Grid,Paper,Card,Avatar } from "@mui/material";
 import { Favorite,People,CalendarMonth,BarChart,Security,Headphones,CheckCircle,AccessTime,Lock,EmojiEvents,ArrowForward } from "@mui/icons-material";
+import {useAuth} from "../contexts/AuthContext";
 
 export default function Content() {
+
+  const { isAuthenticated } = useAuth();
   const features = [
     {
       icon: <Favorite color="error" fontSize="large" />,
@@ -84,6 +87,7 @@ export default function Content() {
             Empowering healthcare providers with cutting-edge technology for
             superior patient care, streamlined operations, and enhanced outcomes.
           </Typography>
+          {isAuthenticated === false && (
             <Button
             variant="contained"
             color="black"
@@ -93,6 +97,19 @@ export default function Content() {
             >
             Get Started Today
           </Button>
+      )}{
+        isAuthenticated === true && (
+          <Button
+            variant="contained"
+            color="black"
+            size="large"
+            endIcon={<ArrowForward />}
+            href="/doctors"
+            >
+            View Doctors
+          </Button>
+        )
+      }
         </Container>
       </Box>
 
