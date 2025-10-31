@@ -1,11 +1,11 @@
 import React from "react";
 import { Typography,Container,Box,Button,Grid,Paper,Card,Avatar } from "@mui/material";
 import { Favorite,People,CalendarMonth,BarChart,Security,Headphones,CheckCircle,AccessTime,Lock,EmojiEvents,ArrowForward } from "@mui/icons-material";
-import {useAuth} from "../contexts/AuthContext";
+import {useAuth} from "../../../contexts/AuthContext";
 
 export default function Content() {
 
-  const { isAuthenticated } = useAuth();
+  const { user ,isAuthenticated } = useAuth();
   const features = [
     {
       icon: <Favorite color="error" fontSize="large" />,
@@ -68,18 +68,31 @@ export default function Content() {
   ];
 
   return (
-    <Box>
+    <Box sx={{overflowX: "hidden"}}>
       {/* Hero Section */}
       <Box
         sx={{
           background: "linear-gradient(135deg, #0d47a1, #1976d2)",
           color: "white",
+          width: "100%",
           py: 10,
           textAlign: "center",
         }}
       >
-        <Container maxWidth="md">
-          <Typography variant="h2" fontWeight="bold" gutterBottom>
+      <Container maxWidth="md">
+          <Typography
+            variant="h3"
+            fontWeight="bold"
+            gutterBottom
+            sx={{
+              fontSize: {
+                xs: "1.8rem", 
+                sm: "2rem",
+                md: "2.5rem",
+                lg: "3rem" 
+              }
+            }}
+          >
             Advanced Clinic <br />
             <span style={{ color: "#bbdefb" }}>Management System</span>
           </Typography>
@@ -98,18 +111,30 @@ export default function Content() {
             Get Started Today
           </Button>
       )}{
-        isAuthenticated === true && (
-          <Button
-            variant="contained"
-            color="black"
-            size="large"
-            endIcon={<ArrowForward />}
-            href="/doctors"
-            >
-            View Doctors
-          </Button>
-        )
-      }
+          isAuthenticated && (
+            user.role !== 'Admin' ? (
+              <Button
+                variant="contained"
+                color="black"
+                size="large"
+                endIcon={<ArrowForward />}
+                href="/doctors"
+              >
+                View Doctors
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="black"
+                size="large"
+                endIcon={<ArrowForward />}
+                href="/admin/dash"
+              >
+                Dashboard
+              </Button>
+            )
+          )
+        }
         </Container>
       </Box>
 
@@ -358,8 +383,9 @@ export default function Content() {
           background: "linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)",
           color: "white",
           textAlign: "center",
-          py: { xs: 6, md: 10 },
+          py: { xs: 6, md: 6 },
           position: "relative",
+          borderRadius: '8px', m:2
         }}
       >
         <Container maxWidth="md">
@@ -439,7 +465,7 @@ export default function Content() {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ bgcolor: "grey.900", color: "white", py: 6 }}>
+      <Box sx={{ bgcolor: "grey.900", color: "white", py: 6 ,borderRadius: '8px', m:2}}>
         <Container>
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>

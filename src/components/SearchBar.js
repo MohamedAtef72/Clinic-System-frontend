@@ -6,7 +6,7 @@ export default function SearchBar({ searchTerm, setSearchTerm }) {
     <Box display="flex" justifyContent="center" sx={{ mb: 2 }}>
       <TextField
         variant="outlined"
-        placeholder="Search doctors by name or specialization..."
+        placeholder="Search by name ..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         InputProps={{

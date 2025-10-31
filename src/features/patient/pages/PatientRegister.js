@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { TextField,Button,Typography,Box,CircularProgress,Alert,Select,MenuItem,FormControl,InputLabel,Grid,IconButton,InputAdornment } from "@mui/material";
+import { TextField,Button,Typography,Box,CircularProgress,Alert,Select,MenuItem,FormControl,InputLabel,IconButton,InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { receptionistRegister } from "../services/authService";
+import { patientRegister } from "../../../services/authService";
 
-// Define a validation schema using Yup to match the Receptionist DTO
+// Define a validation schema using Yup to match the Patient DTO
 const validationSchema = yup.object({
     userName: yup.string().required("Username is required"),
     email: yup
@@ -52,23 +52,13 @@ password: yup
     phoneNumber: yup.string()
     .matches(/^[0-9]+$/, "Phone Number must contain only numbers")
     .min(11, "Phone Number must be at least 11 characters")
-    .required("Phone Number is required"),    
-    country: yup.string().required("Country is required"),
+    .required("Phone Number is required"),    country: yup.string().required("Country is required"),
     gender: yup.string().required("Gender is required"),
     dateOfBirth: yup.date()
         .required("Date of Birth is required")
         .max(new Date(), "Date of birth cannot be in the future"),
-    shiftStart: yup.string().required("Shift start time is required"),
-    shiftEnd: yup.string()
-        .required("Shift end time is required")
-        .test(
-            'is-greater',
-            'End time must be after start time',
-            function (value) {
-                const { shiftStart } = this.parent;
-                return shiftStart && value && value > shiftStart;
-            }
-        ),
+    bloodType: yup.string().required("Blood Type is required"),
+    medicalHistory: yup.string().required("Medical History is required"),
     image: yup
         .mixed()
         .test("fileSize", "The file is too large (max 5MB)", (value) => {
@@ -81,7 +71,7 @@ password: yup
         }),
 });
 
-export default function ReceptionistRegister() {
+export default function PatientRegister() {
     const [serverError, setServerError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -109,10 +99,8 @@ export default function ReceptionistRegister() {
         formData.append('Country', data.country);
         formData.append('Gender', data.gender);
         formData.append('DateOfBirth', data.dateOfBirth.toISOString().split('T')[0]);
-        
-        // Send the full time string, e.g., "09:30"
-        formData.append('ShiftStart', data.shiftStart);
-        formData.append('ShiftEnd', data.shiftEnd);
+        formData.append('BloodType', data.bloodType);
+        formData.append('MedicalHistory', data.medicalHistory);
 
         // Append the image file only if it has been selected
         if (data.image && data.image.length > 0) {
@@ -121,10 +109,10 @@ export default function ReceptionistRegister() {
 
         try {
             setServerError(""); // Clear previous errors
-            const response = await receptionistRegister(formData);
+            const response = await patientRegister(formData);
             console.log(response.message);
             // Redirect to a login page or dashboard on success
-            navigate("/");
+            navigate("/login");
         } catch (error) {
             const errorMessage =
                 error.response?.data?.message || "Registration failed. Please try again.";
@@ -142,7 +130,7 @@ export default function ReceptionistRegister() {
     return (
         <Box sx={{ maxWidth: 500, mx: "auto", mt: 5, mb: 5, p: 3, boxShadow: 3, borderRadius: 2 }}>
             <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold' }}>
-                Receptionist Registration
+                Patient Registration
             </Typography>
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
                 {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
@@ -266,34 +254,33 @@ export default function ReceptionistRegister() {
                     helperText={errors.dateOfBirth?.message}
                 />
 
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <TextField
-                            label="Shift Start Time"
-                            type="time"
-                            fullWidth
-                            margin="normal"
-                            required
-                            InputLabelProps={{ shrink: true }}
-                            {...register("shiftStart")}
-                            error={!!errors.shiftStart}
-                            helperText={errors.shiftStart?.message}
-                        />
-                    </Grid>
-                     <Grid item xs={6}>
-                        <TextField
-                            label="Shift End Time"
-                            type="time"
-                            fullWidth
-                            margin="normal"
-                            required
-                            InputLabelProps={{ shrink: true }}
-                            {...register("shiftEnd")}
-                            error={!!errors.shiftEnd}
-                            helperText={errors.shiftEnd?.message}
-                        />
-                    </Grid>
-                </Grid>
+                <FormControl fullWidth margin="normal" required error={!!errors.bloodType}>
+                    <InputLabel id="blood-type-label">Blood Type</InputLabel>
+                    <Select
+                        labelId="blood-type-label"
+                        label="Blood Type"
+                        defaultValue=""
+                        {...register("bloodType")}
+                    >
+                        {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(type => (
+                            <MenuItem key={type} value={type}>{type}</MenuItem>
+                        ))}
+                    </Select>
+                    {errors.bloodType && <Typography color="error" variant="caption">{errors.bloodType.message}</Typography>}
+                </FormControl>
+
+                <TextField
+                    label="Medical History"
+                    fullWidth
+                    margin="normal"
+                    required
+                    multiline
+                    rows={4}
+                    placeholder="Please describe any relevant medical history, allergies, or current conditions."
+                    {...register("medicalHistory")}
+                    error={!!errors.medicalHistory}
+                    helperText={errors.medicalHistory?.message}
+                />
 
                 <Button
                     variant="outlined"
