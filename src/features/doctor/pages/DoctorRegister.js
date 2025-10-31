@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { TextField,Button,Typography,Box,CircularProgress,Alert,Select,MenuItem,FormControl,InputLabel,IconButton,InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { doctorRegister, getAllSpecialities } from "../services/authService";
+import { doctorRegister, getAllSpecialities } from "../../../services/authService";
 
 
 // Define a validation schema using Yup to match the C# DTO

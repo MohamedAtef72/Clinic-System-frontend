@@ -1,13 +1,11 @@
 import { TextField, Button, Box, Typography, Avatar, Container, Paper, CircularProgress, Alert } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { useState, useEffect } from 'react';
-import { userProfile, userUpdate } from '../services/authService';
+import { userProfile, userUpdate } from '../../../services/authService';
 import { useNavigate } from 'react-router-dom';
 
 export default function EditProfile() {
   const navigate = useNavigate();
-
-  // --- STATE ---
   const [form, setForm] = useState({
     userName: '',
     country: '',
@@ -23,7 +21,6 @@ export default function EditProfile() {
   const [error, setError] = useState(null);
   const [roles, setRoles] = useState([]);
 
-  // --- FETCH USER ---
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -83,7 +80,6 @@ export default function EditProfile() {
         navigate('/profile');
       }
     } catch (err) {
-      console.error('Update failed:', err);
       setError('Failed to save changes. Please try again.');
     } finally {
       setSaving(false);

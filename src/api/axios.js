@@ -1,75 +1,63 @@
-// api.js - Fixed configuration
 import axios from "axios";
 
-// Custom Axios instance
+// Create custom Axios instance
 const api = axios.create({
-  baseURL: "https://localhost:7206/api",
-  withCredentials: true,
+  baseURL: process.env.REACT_APP_API_URL,
+  withCredentials: true, 
 });
 
-// Add request interceptor for debugging
+// Request interceptor (for debugging/logging)
 api.interceptors.request.use(
   (config) => {
     return config;
   },
   (error) => {
-    console.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor with refresh retry logic
+// Response interceptor (handles refresh token logic)
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    console.log("=== Response Error ===");
-    console.log("Status:", error.response?.status);
-    console.log("Error message:", error.response?.data?.message || error.message);
-    
     const originalRequest = error.config;
 
+    // Skip refresh logic for Login or Refresh endpoints themselves
+    if (
+      originalRequest?.url?.includes("/Auth/Login") ||
+      originalRequest?.url?.includes("/Auth/Refresh")
+    ) {
+      return Promise.reject(error);
+    }
+
+    // Handle 401 (Unauthorized) and try silent refresh once
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      console.log("401 detected, trying silent refresh...");
-      
+
       try {
-        // Make refresh request
-        const refreshResponse = await axios.post(
-          "https://localhost:7206/api/Auth/Refresh", 
-          {}, // Empty body
-          {
-            withCredentials: true,
-            // headers: {
-            //   'Content-Type': 'application/json',
-            //   'Accept': 'application/json'
-            // }
-          }
+        // Call the refresh endpoint
+        const refreshResponse = await api.post(
+          "/Auth/Refresh",
+          {},
+          { withCredentials: true }
         );
-        
-        console.log("Refresh successful:", refreshResponse.data);
-        
-        // Retry the original request
-        return api(originalRequest); 
+
+        // Retry the original failed request
+        return api(originalRequest);
       } catch (refreshError) {
         console.error("Silent refresh failed:", refreshError);
         console.error("Refresh error details:", {
           status: refreshError.response?.status,
           message: refreshError.response?.data?.message,
-          headers: refreshError.response?.headers
         });
-        
-        // Clear any remaining auth state
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-        
-        // Redirect to login
-        window.location.href = "/login"; 
+
+        // Redirect to login page
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
 
+    // Return the error if not handled
     return Promise.reject(error);
   }
 );

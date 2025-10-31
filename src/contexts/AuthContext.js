@@ -31,22 +31,20 @@ export const AuthProvider = ({ children }) => {
   // Login function that updates state after successful login
   const login = async (data) => {
     try {
-      await apiLogin(data);        // Call backend login
-      await refreshAuth();         // Only refresh if login succeeded
+      await apiLogin(data);        
+      await refreshAuth();         
     } catch (err) {
-      // Don't refresh on error
-      throw err;                   // Pass error back to Login.js
+      throw err;                   
     }
   };
 
   // Logout function that clears state after logout
   const logout = async (data) => {
     try {
-      await apiLogout(data);        // Call backend login
-      await refreshAuth();         // Only refresh if login succeeded
+      await apiLogout(data);        
+      await refreshAuth();         
     } catch (err) {
-      // Don't refresh on error
-      throw err;                   // Pass error back to Login.js
+      throw err;                  
     }
   };
 
