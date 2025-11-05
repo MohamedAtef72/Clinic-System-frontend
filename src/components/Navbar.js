@@ -31,6 +31,7 @@ export default function Navbar() {
             { text: "AddDoctor", path: "/doctor-register" },
             { text: "AddReceptionist", path: "/receptionist-register" },
             { text: "AllAppointments", path: "/all-appointments" },
+            { text: "AddSpeciality", path: "/add-speciality" },
           ]
         : []),
       ...(user?.role === "Receptionist"
