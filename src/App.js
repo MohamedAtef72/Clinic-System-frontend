@@ -43,6 +43,9 @@ import EditProfile from "./features/profile/pages/EditProfile";
 import BookAppointmentPage from "./features/appointments/pages/BookAppointmentPage";
 import AllAppointmentsPage from "./features/appointments/pages/AllAppointmentsPage";
 
+// speciality
+import { AddSpeciality } from "./features/speciality/components";
+
 
 function App() {
   return (
@@ -163,6 +166,13 @@ function App() {
         <Route path="/all-appointments" element={
           <ProtectedRoute>
             <AllAppointmentsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* speciality */}
+        <Route path="/add-speciality" element={
+          <ProtectedRoute>
+            <AddSpeciality />
           </ProtectedRoute>
         } />
       </Routes>

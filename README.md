@@ -1,70 +1,179 @@
-# Getting Started with Create React App
+# 🩺 Clinic System - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the **frontend** of the Clinic System project.  
+It provides a responsive and user-friendly interface for doctors, patients, and admins.  
+Built with **React**, **MUI**, and **Axios** for API integration.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Tech Stack
 
-### `npm start`
+- **React 18**
+- **React Router**
+- **MUI**
+- **Axios**
+- **Chart.js** (for dashboard charts)
+- **JWT Authentication**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🧱 Project Structure
 
-### `npm test`
+```
+clinic-system-frontend/
+│
+├── src/
+│   ├── components/     # Reusable UI components (Navbar, Footer, Cards, Modals, etc.)
+│   ├── features/       # Feature-based structure
+│       ├── appointments/
+│           ├── pages/      # Pages related to appointments feature
+│           └── components/ # Components related to appointments feature
+│       ├── doctor/
+│           ├── pages/      # Pages related to doctors feature
+│           └── components/ # Components related to doctors feature
+│       ├── patient/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│       ├── auth/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│       ├── dashboard/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│       ├── home/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│       ├── profile/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│       ├── receptionist/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│       ├── speciality/
+│           ├── pages/      # Pages related to patients feature
+│           └── components/ # Components related to patients feature
+│   ├── services/       # Axios API calls
+│   ├── context/        # Auth context and state management
+│   └── App.jsx
+└── package.json
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## ⚙️ Setup Instructions
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1️⃣ Clone the Repository
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+git clone https://github.com/MohamedAtef72/Clinic-System-frontend.git
+cd clinic-system-frontend
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 2️⃣ Install Dependencies
 
-### `npm run eject`
+```bash
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 3️⃣ Create `.env` File
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```env
+REACT_APP_API_URL= 'backend URL'
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 4️⃣ Run the App
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run dev
+```
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🖥️ Features
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- 🔐 Authentication (Login / Register / JWT)
+- 👨‍⚕️ Doctor Profile & Ratings
+- 👥 Patients Management
+- 🗓️ Appointments Scheduling
+- ⭐ Rating System
+- 📊 Admin Dashboard with Charts & Statistics
+- 📱 Fully Responsive UI
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🧭 Folder Highlights (Feature-Based)
 
-### Analyzing the Bundle Size
+| Feature          | Pages                          | Components                               |
+| ---------------- | ------------------------------ | ---------------------------------------- |
+| Appointments     | `features/appointments/pages/` | `features/appointments/components/`      |
+| Doctors          | `features/doctors/pages/`      | `features/doctors/components/`           |
+| Patients         | `features/patients/pages/`     | `features/patients/components/`          |
+| SharedComponents | N/A                            | (Navbar, Footer, Cards, Modals, etc.)    |
+| Services         | N/A                            | `services/authService` (Axios API calls) |
+| Context          | N/A                            | `context/` (Auth & User Context)         |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## 📦 Build for Production
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+npm run build
+```
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🐳 Docker Setup
 
-### Deployment
+This project includes a **Dockerfile** to simplify the build and deployment process.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 🧩 Build the Docker Image
 
-### `npm run build` fails to minify
+```bash
+docker build -t clinic-system-frontend .
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 🚀 Run the Container
+
+```bash
+docker run -d -p 3000:80 clinic-system-frontend
+```
+
+Then open your browser and visit:  
+👉 [http://localhost:3000](http://localhost:3000)
+
+---
+
+### 🧱 Dockerfile Overview
+
+```dockerfile
+# ---- Build Stage ----
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# ---- Run Stage ----
+FROM nginx:stable-alpine
+
+COPY --from=build /app/build /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+📝 **Notes:**
+
+- The build stage installs dependencies and builds the React app.
+- The run stage uses **Nginx** to serve the static files.
+- You can add a custom `nginx.conf` if you need to modify routing or headers.
+
+---
+
+## 👨‍💻 Developed By
+
+**Mohamed Atef**

@@ -103,7 +103,7 @@ export const userUpdate = async (formData) => {
     console.error("Error updating User Data:", error);
     throw error;
   } 
-};
+};  
 /////////////////////////////////////////////////////////////////////////////////
 
 // Speciality Services
@@ -114,6 +114,15 @@ export const getAllSpecialities = async () => {
   } catch (error) {
     console.error("Error fetching specialities:", error);
     return [];
+  }
+};
+
+export const addSpeciality = async (data) => {
+  try {
+    const response = await api.post("/Speciality", data);
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };
 /////////////////////////////////////////////////////////////////////////////////
