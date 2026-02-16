@@ -114,6 +114,19 @@ npm run dev
 
 ---
 
+## 🔔 Notification System
+
+The application features a real-time notification system powered by **SignalR**.
+
+- **Real-time Updates**: Notifications appear instantly via WebSocket connection.
+- **Infinite Scrolling**: Browsing notifications is efficient with server-side pagination and infinite scroll.
+- **Interactive UI**:
+  - **Unread Badge**: Shows the count of unread notifications.
+  - **Mark as Read**: Click to mark individual or all notifications as read.
+  - **Toast Alerts**: Pop-up toasts for immediate feedback on critical events (e.g., Appointment Cancelled).
+
+---
+
 ## 📦 Build for Production
 
 ```bash
