@@ -46,11 +46,15 @@ import AllAppointmentsPage from "./features/appointments/pages/AllAppointmentsPa
 // speciality
 import { AddSpeciality } from "./features/speciality/components";
 
+// notification
+import { NotificationProvider } from './contexts/NotificationContext';
+
 
 function App() {
   return (
     <div className="App">
       <AuthProvider>
+      <NotificationProvider>
       <Navbar />
       <Routes>
         {/* Public Routes */}
@@ -176,6 +180,7 @@ function App() {
           </ProtectedRoute>
         } />
       </Routes>
+      </NotificationProvider>
       </AuthProvider>
     </div>
   );

@@ -6,8 +6,8 @@ export const login = async (data) => {
     const response = await api.post("/Auth/Login", data);
     return response.data;
   } catch (error) {
-          throw error;
-    }
+    throw error;
+  }
 };
 
 export const logout = async (data) => {
@@ -15,8 +15,8 @@ export const logout = async (data) => {
     const response = await api.get("/Auth/Logout", data);
     return response.data;
   } catch (error) {
-      throw error;
-}
+    throw error;
+  }
 };
 
 export const doctorRegister = async (data) => {
@@ -73,16 +73,16 @@ export const resetPassword = async (data) => {
 // User Services
 export const currentUser = async () => {
   try {
-  const response = await api.get("/Auth/Me");
-  return response.data;
+    const response = await api.get("/Auth/Me");
+    return response.data;
   } catch (error) {
     if (error.response) {
       return { success: false, message: error.response.data.message };
     }
-      console.error("Error In Fetching Current User:", error);
-      throw error;
-}
-};  
+    console.error("Error In Fetching Current User:", error);
+    throw error;
+  }
+};
 
 export const userProfile = async () => {
   try {
@@ -102,8 +102,8 @@ export const userUpdate = async (formData) => {
   } catch (error) {
     console.error("Error updating User Data:", error);
     throw error;
-  } 
-};  
+  }
+};
 /////////////////////////////////////////////////////////////////////////////////
 
 // Speciality Services
@@ -150,16 +150,16 @@ export const getDoctorById = async (id) => {
   } catch (error) {
     console.error("Error fetching doctor by ID:", error);
     return null;
-  } 
+  }
 };
 
 export const setPrice = async (id, data) => {
   try {
-    const res = await api.patch(`/Doctor/SetPrice/${id}`,data);
+    const res = await api.patch(`/Doctor/SetPrice/${id}`, data);
     return res.data;
   } catch (error) {
     console.error("Error setting price:", error);
-    throw error;  
+    throw error;
   }
 };
 /////////////////////////////////////////////////////////////////////////////////
@@ -186,15 +186,15 @@ export const updateAvailability = async (id, data) => {
 
 export const deleteAvailability = async (id) => {
   try {
-  const res = await api.delete(`/DoctorAvailability/Delete/${id}`);
-  return res.data;
+    const res = await api.delete(`/DoctorAvailability/Delete/${id}`);
+    return res.data;
   } catch (error) {
     throw error;
   }
 };
 
 export const getDoctorAvailabilities = async (doctorId) => {
-  try{
+  try {
     const res = await api.get(`/DoctorAvailability/doctor/${doctorId}`);
     return res.data;
   } catch (error) {
@@ -222,7 +222,7 @@ export const createAppointment = async (data) => {
   }
 };
 
-export const getAllApointments = async ( status="", pageNumber) => {
+export const getAllApointments = async (status = "", pageNumber) => {
   try {
     const params = new URLSearchParams();
 
@@ -236,7 +236,7 @@ export const getAllApointments = async ( status="", pageNumber) => {
   }
 };
 
-export const getPatientAppointments = async (status="",patientId,pageNumber) => {
+export const getPatientAppointments = async (status = "", patientId, pageNumber) => {
   try {
     const params = new URLSearchParams();
     params.append("pageNumber", pageNumber);
@@ -249,7 +249,7 @@ export const getPatientAppointments = async (status="",patientId,pageNumber) => 
   }
 };
 
-export const getDoctorAppointments = async (status= "",doctorId , pageNumber , startTime , endTime) => {
+export const getDoctorAppointments = async (status = "", doctorId, pageNumber, startTime, endTime) => {
   try {
     const params = new URLSearchParams();
     params.append("pageNumber", pageNumber);
@@ -275,7 +275,7 @@ export const updateAppointment = async (id, data) => {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Patient Services
-export const getPatientById = async (id,pageNumber) => {
+export const getPatientById = async (id, pageNumber) => {
   try {
     const response = await api.get(`/Patient/${id}?pageNumber=` + pageNumber);
     return response.data;
@@ -284,19 +284,17 @@ export const getPatientById = async (id,pageNumber) => {
   }
 };
 
-export const getAllPatients = async(pageNumber, searchName="") => {
-  try
-  {
-      const params = new URLSearchParams();
-      
-      params.append("pageNumber",pageNumber);
-      if (searchName.trim()) params.append("searchName",searchName);
+export const getAllPatients = async (pageNumber, searchName = "") => {
+  try {
+    const params = new URLSearchParams();
 
-      const res = await api.get(`/Patient/GetAll?${params.toString()}`);
-      return res.data;
+    params.append("pageNumber", pageNumber);
+    if (searchName.trim()) params.append("searchName", searchName);
+
+    const res = await api.get(`/Patient/GetAll?${params.toString()}`);
+    return res.data;
   }
-  catch(error)
-  {
+  catch (error) {
     throw error;
   }
 }
@@ -334,14 +332,14 @@ export const updateVisit = async (id, data) => {
 /////////////////////////////////////////////////////////////////////////////////
 
 // Rate Services
-export const rateDoctor = async ( ratingData) => {
+export const rateDoctor = async (ratingData) => {
   try {
     const response = await api.post(`/Rating/Create`, ratingData);
     return response.data;
   } catch (error) {
     console.error("Error rating doctor:", error);
     throw error;
-  } 
+  }
 };
 
 export const updateDoctorRate = async (id, ratingData) => {
@@ -355,7 +353,7 @@ export const updateDoctorRate = async (id, ratingData) => {
 
 export const getRateByAppointmentId = async (id) => {
   try {
-    const response = await api.get(`/Rating/${id}`);  
+    const response = await api.get(`/Rating/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching rating by ID:", error);
@@ -391,4 +389,5 @@ export const getRecentData = async () => {
     throw error;
   }
 };
+
 /////////////////////////////////////////////////////////////////////////////////

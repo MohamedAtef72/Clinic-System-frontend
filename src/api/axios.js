@@ -3,7 +3,7 @@ import axios from "axios";
 // Create custom Axios instance
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true, 
+  withCredentials: true,
 });
 
 // Request interceptor (for debugging/logging)
@@ -51,8 +51,15 @@ api.interceptors.response.use(
           message: refreshError.response?.data?.message,
         });
 
-        // Redirect to login page
-        window.location.href = "/login";
+        // Only redirect to login if:
+        // 1. The request wasn't the initial auth check (/Auth/Me)
+        // 2. We are not already on the login page
+        if (
+          !originalRequest.url.includes("/Auth/Me") &&
+          !window.location.pathname.toLowerCase().includes("/login")
+        ) {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       }
     }

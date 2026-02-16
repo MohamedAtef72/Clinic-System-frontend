@@ -106,7 +106,7 @@ export default function Content() {
             color="black"
             size="large"
             endIcon={<ArrowForward />}
-            href="/Login"
+            href="/login"
             >
             Get Started Today
           </Button>
