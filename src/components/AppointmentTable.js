@@ -15,7 +15,7 @@ import {
   IconButton,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getStatusChipColor } from "./GetStatus"; 
+import { getStatusChipColor } from "./GetStatus";
 
 // A sub-component to handle the complex action buttons logic
 const TableActions = ({ appointment, onAction }) => {
@@ -41,25 +41,25 @@ const TableActions = ({ appointment, onAction }) => {
       label: "Check-In",
       action: "CheckedIn",
       color: "success",
-      disabled: appointment.appointmentStatus === "CheckedIn",
+      disabled: appointment.appointmentStatus === "CheckedIn" || appointment.appointmentStatus === "Completed",
     },
     cancel: {
       label: "Cancel",
       action: "Cancelled",
       color: "error",
-      disabled: appointment.appointmentStatus === "Cancelled",
+      disabled: appointment.appointmentStatus === "Cancelled" || appointment.appointmentStatus === "Completed",
     },
     noShow: {
       label: "No-Show",
       action: "NoShow",
       color: "warning",
-      disabled: appointment.appointmentStatus === "NoShow",
+      disabled: appointment.appointmentStatus === "NoShow" || appointment.appointmentStatus === "Completed",
     },
     complete: {
       label: "Complete",
       action: "Completed",
       color: "info",
-      disabled: appointment.appointmentStatus === "Completed",
+      disabled: appointment.appointmentStatus === "Completed" || appointment.appointmentStatus === "Cancelled" || appointment.appointmentStatus === "NoShow",
     },
   };
 
@@ -148,9 +148,9 @@ export const AppointmentsTable = ({ appointments, onAction }) => {
               <TableCell>
                 {a.startTime
                   ? new Date(a.startTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                   : "N/A"}
               </TableCell>
               <TableCell sx={{ fontWeight: 600, color: "success.dark" }}>

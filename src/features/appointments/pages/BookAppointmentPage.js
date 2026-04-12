@@ -49,7 +49,7 @@ export default function BookAppointmentPage() {
     availabilities.forEach((a) => {
       allSlots.push({
         ...a,
-        originalId: a.id, // حفظ الـ id الأصلي
+        originalId: a.id, 
       });
 
       if (a.recurrencePattern && a.recurrenceEndDate) {
@@ -58,14 +58,14 @@ export default function BookAppointmentPage() {
         const recurrenceEnd = new Date(a.recurrenceEndDate);
 
         while (true) {
-          start.setDate(start.getDate() + 7); // تكرار أسبوعي
+          start.setDate(start.getDate() + 7); 
           end.setDate(end.getDate() + 7);
           if (start > recurrenceEnd) break;
 
           allSlots.push({
             ...a,
             id: `${a.id}-${start.toISOString()}`,
-            originalId: a.id, // نحفظ الأصل
+            originalId: a.id, 
             startTime: new Date(start),
             endTime: new Date(end),
           });
@@ -87,7 +87,6 @@ export default function BookAppointmentPage() {
         setDoctor(doctorRes);
         setPatientId(userRes.user?.id || userRes.userId);
 
-        // 🧠 توليد المواعيد (مع التكرار)
         const generatedSlots = generateRecurringAvailabilities(
           doctorRes.availabilities || []
         );

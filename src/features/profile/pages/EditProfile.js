@@ -55,7 +55,7 @@ export default function EditProfile() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file); 
+      setImage(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
@@ -66,13 +66,24 @@ export default function EditProfile() {
     setError(null);
 
     const formData = new FormData();
-    formData.append('userName', form.userName);
-    formData.append('country', form.country);
-    if (form.medicalHistory) formData.append('medicalHistory', form.medicalHistory);
-    if (form.shiftStart) formData.append('shiftStart', form.shiftStart);
-    if (form.shiftEnd) formData.append('shiftEnd', form.shiftEnd);
+
+    formData.append("userName", form.userName);
+    formData.append("country", form.country);
+
+    if (form.medicalHistory) {
+      formData.append("medicalHistory", form.medicalHistory);
+    }
+
+    if (form.shiftStart) {
+      formData.append("shiftStart", form.shiftStart);
+    }
+
+    if (form.shiftEnd) {
+      formData.append("shiftEnd", form.shiftEnd);
+    }
+
     if (image) {
-    formData.append("Image", image);
+      formData.append("Image", image);
     }
     try {
       const res = await userUpdate(formData);
@@ -120,12 +131,12 @@ export default function EditProfile() {
               startIcon={<PhotoCamera />}
             >
               Change Picture
-            <input
-              type="file"
-              hidden
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
             </Button>
           </Box>
 
@@ -134,21 +145,21 @@ export default function EditProfile() {
           <TextField fullWidth name="userName" label="Name" value={form.userName} onChange={handleChange} required />
           <TextField fullWidth name="country" label="Country" value={form.country} onChange={handleChange} />
 
-        { roles.includes('Patient') &&
-          <TextField
-            fullWidth
-            name="medicalHistory"
-            label="Medical History"
-            value={form.medicalHistory}
-            onChange={handleChange}
-            multiline
-            rows={3}
-          />
-        }
-
-        { roles.includes('Receptionist') &&
-          <>
+          {roles.includes('Patient') &&
             <TextField
+              fullWidth
+              name="medicalHistory"
+              label="Medical History"
+              value={form.medicalHistory}
+              onChange={handleChange}
+              multiline
+              rows={3}
+            />
+          }
+
+          {roles.includes('Receptionist') &&
+            <>
+              <TextField
                 fullWidth
                 name="shiftStart"
                 label="Shift Start"
@@ -156,9 +167,9 @@ export default function EditProfile() {
                 value={form.shiftStart}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
-            />
+              />
 
-            <TextField
+              <TextField
                 fullWidth
                 name="shiftEnd"
                 label="Shift End"
@@ -166,8 +177,8 @@ export default function EditProfile() {
                 value={form.shiftEnd}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
-            />
-          </>}
+              />
+            </>}
 
           <Button type="submit" fullWidth variant="contained" disabled={saving} sx={{ mt: 2, py: 1.5 }}>
             {saving ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
