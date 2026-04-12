@@ -97,10 +97,21 @@ export const userProfile = async () => {
 export const userUpdate = async (formData) => {
   try {
     const response = await api.put("/User/UpdateProfile", formData);
-    console.log(response);
     return response;
   } catch (error) {
-    console.error("Error updating User Data:", error);
+    console.log("Full Error:", error);
+    console.log("Response Data:", error.response?.data);
+    console.log("Response Status:", error.response?.status);
+    throw error;
+  }
+};
+
+export const deleteProfile = async (userId) => {
+  try {
+    const response = await api.delete(`/User/DeleteProfile/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting profile:", error);
     throw error;
   }
 };
