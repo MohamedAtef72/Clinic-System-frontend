@@ -14,7 +14,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const { user, isAuthenticated, logout } = useAuth();
-  const { notifications, unreadCount, markNotificationAsRead, markAllNotificationsAsRead, refreshNotifications, loadMoreNotifications, loading } = useNotifications();
+  const { notifications, unreadCount, markNotificationAsRead, markAllNotificationsAsRead, refreshNotifications, loading } = useNotifications();
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
@@ -98,14 +98,8 @@ export default function Navbar() {
               style: {
                 maxHeight: 400,
                 width: '350px',
-                overflowY: 'auto', // Enable scrolling
+                overflowY: 'auto',
               },
-              onScroll: (e) => {
-                const { scrollTop, clientHeight, scrollHeight } = e.target;
-                if (scrollHeight - scrollTop <= clientHeight + 10) { // Near bottom
-                  loadMoreNotifications();
-                }
-              }
             }}
           >
             <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
@@ -164,6 +158,26 @@ export default function Navbar() {
                 <Typography variant="caption">Loading...</Typography>
               </Box>
             )}
+            {/* Show All button */}
+            <Box sx={{ p: 1, borderTop: '1px solid #eee' }}>
+              <MenuItem
+                id="show-all-notifications-btn"
+                onClick={() => {
+                  handleNotificationClose();
+                  navigate('/notifications');
+                }}
+                sx={{
+                  justifyContent: 'center',
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  borderRadius: 1,
+                  '&:hover': { backgroundColor: 'rgba(25,118,210,0.08)' },
+                }}
+              >
+                Show All Notifications
+              </MenuItem>
+            </Box>
           </Menu>
 
           <IconButton size="large" edge="end" color="inherit" onClick={handleMenuOpen}>

@@ -1,8 +1,8 @@
 import api from "../api/axios";
 
-export const getUserNotifications = async (pageNumber = 1, pageSize = 6) => {
+export const getUserNotifications = async (pageNumber) => {
     try {
-        const response = await api.get(`/Notification/User?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        const response = await api.get(`/Notification/User?pageNumber=${pageNumber}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching user notifications:", error);
