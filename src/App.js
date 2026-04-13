@@ -48,6 +48,7 @@ import { AddSpeciality } from "./features/speciality/components";
 
 // notification
 import { NotificationProvider } from './contexts/NotificationContext';
+import NotificationsPage from './features/notifications/pages/NotificationsPage';
 
 
 function App() {
@@ -170,6 +171,13 @@ function App() {
         <Route path="/all-appointments" element={
           <ProtectedRoute>
             <AllAppointmentsPage />
+          </ProtectedRoute>
+        } />
+
+        {/* notifications */}
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>
         } />
 
