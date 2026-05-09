@@ -13,11 +13,11 @@ export const getAllDoctors = async (pageNumber, searchName = "", gender = "", sp
     const response = await api.get(`/Doctor/AllDoctors?${params.toString()}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return [] };
-    throw {
+    if (error.response?.status === 404) { return [] };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -26,11 +26,11 @@ export const getDoctorById = async (id) => {
     const response = await api.get(`/Doctor/${id}`);
     return response.data;
   } catch (error) {
-    if (error.response.status == 404) { return null; }
-    throw {
+    if (error.response.status === 404) { return null; }
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -39,9 +39,9 @@ export const setPrice = async (id, data) => {
     const res = await api.patch(`/Doctor/SetPrice/${id}`, data);
     return res.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };

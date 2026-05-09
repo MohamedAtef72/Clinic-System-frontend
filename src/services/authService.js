@@ -6,10 +6,10 @@ export const login = async (data) => {
     const response = await api.post("/Auth/Login", data);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -18,10 +18,10 @@ export const logout = async (data) => {
     const response = await api.get("/Auth/Logout", data);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -32,10 +32,10 @@ export const doctorRegister = async (data) => {
     });
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message || error.message || "Registration failed",
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -46,10 +46,10 @@ export const patientRegister = async (data) => {
     });
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message || error.message || "Registration failed",
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -60,10 +60,10 @@ export const receptionistRegister = async (data) => {
     });
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message || error.message || "Registration failed",
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -74,10 +74,10 @@ export const forgotPassword = async (email) => {
     });
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -86,10 +86,10 @@ export const resetPassword = async (data) => {
     const response = await api.post("/Auth/ResetPassword", data);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -98,9 +98,9 @@ export const getUploadSignature = async (folder = "clinic_app_images") => {
     const response = await api.get(`/Auth/GetUploadSignature?folder=${folder}`);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };

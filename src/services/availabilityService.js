@@ -6,10 +6,10 @@ export const addAvailability = async (data) => {
     const res = await api.post("/DoctorAvailability/Add", data);
     return res.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -18,10 +18,10 @@ export const updateAvailability = async (id, data) => {
     const res = await api.put(`/DoctorAvailability/Update/${id}`, data);
     return res.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -30,10 +30,10 @@ export const deleteAvailability = async (id) => {
     const res = await api.delete(`/DoctorAvailability/Delete/${id}`);
     return res.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -43,10 +43,10 @@ export const getDoctorAvailabilities = async (doctorId) => {
     return res.data;
   } catch (error) {
     if (error.response.status === 404) { return []; }
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -56,9 +56,9 @@ export const getDoctorAvailabilityById = async (id) => {
     return response.data;
   } catch (error) {
     if (error.response.status === 404) { return null; }
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };

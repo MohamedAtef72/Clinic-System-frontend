@@ -6,10 +6,10 @@ export const currentUser = async () => {
     const response = await api.get("/Auth/Me");
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -20,10 +20,10 @@ export const userProfile = async () => {
     });
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -34,10 +34,10 @@ export const userUpdate = async (data) => {
     });
     return response;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message || error.message || "Update failed",
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -46,9 +46,9 @@ export const deleteProfile = async (userId) => {
     const response = await api.delete(`/User/DeleteProfile/${userId}`);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };

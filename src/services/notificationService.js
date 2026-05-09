@@ -5,11 +5,11 @@ export const getUserNotifications = async (pageNumber) => {
         const response = await api.get(`/Notification/User?pageNumber=${pageNumber}`);
         return response.data;
     } catch (error) {
-        if (error.response.status == 404) { return []; }
-        throw {
+        if (error.response.status === 404) { return []; }
+        throw Object.assign(new Error(), {
             message: error.response?.data?.message,
             status: error.response?.status
-        }
+        });
     }
 };
 
@@ -18,10 +18,10 @@ export const markAsRead = async (notificationId) => {
         const response = await api.post(`/Notification/MarkAsRead/${notificationId}`);
         return response.data;
     } catch (error) {
-        throw {
+        throw Object.assign(new Error(), {
             message: error.response?.data?.message,
             status: error.response?.status
-        }
+        });
     }
 };
 
@@ -30,9 +30,9 @@ export const markAllAsRead = async () => {
         const response = await api.post("/Notification/MarkAllAsRead");
         return response.data;
     } catch (error) {
-        throw {
+        throw Object.assign(new Error(), {
             message: error.response?.data?.message,
             status: error.response?.status
-        }
+        });
     }
 };
