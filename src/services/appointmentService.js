@@ -6,11 +6,11 @@ export const createAppointment = async (data) => {
     const res = await api.post("/Appointment/Create", data);
     return res.data;
   } catch (error) {
-    if (error.response?.status == 404) { return [] };
-    throw {
+    if (error.response?.status === 404) { return [] };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -24,11 +24,11 @@ export const getAllAppointments = async (status = "", pageNumber) => {
     const response = await api.get(`/Appointment/GetAll?${params.toString()}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return [] };
-    throw {
+    if (error.response?.status === 404) { return [] };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -41,11 +41,11 @@ export const getPatientAppointments = async (status = "", patientId, pageNumber)
     const response = await api.get(`/Appointment/Patient/${patientId}?${params.toString()}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return [] };
-    throw {
+    if (error.response?.status === 404) { return [] };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -60,11 +60,11 @@ export const getDoctorAppointments = async (status = "", doctorId, pageNumber, s
     return response.data;
   }
   catch (error) {
-    if (error.response?.status == 404) { return [] };
-    throw {
+    if (error.response?.status === 404) { return [] };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 }
 
@@ -73,9 +73,9 @@ export const updateAppointment = async (id, data) => {
     const res = await api.put(`/Appointment/Update/${id}`, data);
     return res.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
