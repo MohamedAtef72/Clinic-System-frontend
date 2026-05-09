@@ -6,11 +6,11 @@ export const getPatientById = async (id, pageNumber) => {
     const response = await api.get(`/Patient/${id}?pageNumber=` + pageNumber);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return null };
-    throw {
+    if (error.response?.status === 404) { return null };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -26,10 +26,10 @@ export const getAllPatients = async (pageNumber, searchName = "", gender = "") =
     return res.data;
   }
   catch (error) {
-    if (error.response?.status == 404) { return [] };
-    throw {
+    if (error.response?.status === 404) { return [] };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 }

@@ -6,13 +6,13 @@ export const getAllSpecialities = async () => {
     const response = await api.get("/Speciality/AllSpecialities");
     return response.data.data;
   } catch (error) {
-    if (error.response.status == 404) {
+    if (error.response.status === 404) {
       return [];
     } else {
-      throw {
+      throw Object.assign(new Error(), {
         message: error.response?.data?.message,
         status: error.response?.status
-      }
+      });
     }
   }
 };
@@ -22,9 +22,9 @@ export const addSpeciality = async (data) => {
     const response = await api.post("/Speciality", data);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };

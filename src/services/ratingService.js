@@ -6,11 +6,11 @@ export const rateDoctor = async (ratingData) => {
     const response = await api.post(`/Rating/Create`, ratingData);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return null };
-    throw {
+    if (error.response?.status === 404) { return null };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -19,10 +19,10 @@ export const updateDoctorRate = async (id, ratingData) => {
     const response = await api.put(`/Rating/Update/${id}`, ratingData);
     return response.data;
   } catch (error) {
-    throw {
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -31,11 +31,11 @@ export const getRateByAppointmentId = async (id) => {
     const response = await api.get(`/Rating/${id}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return null };
-    throw {
+    if (error.response?.status === 404) { return null };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
 
@@ -44,10 +44,10 @@ export const getRatingByDoctorId = async (doctorId) => {
     const response = await api.get(`/Rating/Doctor/${doctorId}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status == 404) { return null };
-    throw {
+    if (error.response?.status === 404) { return null };
+    throw Object.assign(new Error(), {
       message: error.response?.data?.message,
       status: error.response?.status
-    }
+    });
   }
 };
