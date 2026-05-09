@@ -8,11 +8,14 @@ Built with **React**, **MUI**, and **Axios** for API integration.
 
 ## 🚀 Tech Stack
 
-- **React 18**
+- **React 19**
 - **React Router**
-- **MUI**
+- **MUI** & **Tailwind CSS** (with centralized Design Tokens)
+- **Material UI Icons** (standardized iconography)
 - **Axios**
-- **Chart.js** (for dashboard charts)
+- **FullCalendar** (for scheduling)
+- **React Hook Form & Yup** (for form validation)
+- **SignalR** (for real-time notifications)
 - **JWT Authentication**
 
 ---
@@ -23,38 +26,23 @@ Built with **React**, **MUI**, and **Axios** for API integration.
 clinic-system-frontend/
 │
 ├── src/
+│   ├── api/            # API endpoints configuration
 │   ├── components/     # Reusable UI components (Navbar, Footer, Cards, Modals, etc.)
+│   ├── contexts/       # React Contexts for state management
 │   ├── features/       # Feature-based structure
 │       ├── appointments/
-│           ├── pages/      # Pages related to appointments feature
-│           └── components/ # Components related to appointments feature
-│       ├── doctor/
-│           ├── pages/      # Pages related to doctors feature
-│           └── components/ # Components related to doctors feature
-│       ├── patient/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
 │       ├── auth/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
 │       ├── dashboard/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
+│       ├── doctor/
 │       ├── home/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
+│       ├── notifications/
+│       ├── patient/
 │       ├── profile/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
 │       ├── receptionist/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
-│       ├── speciality/
-│           ├── pages/      # Pages related to patients feature
-│           └── components/ # Components related to patients feature
-│   ├── services/       # Axios API calls
-│   ├── context/        # Auth context and state management
-│   └── App.jsx
+│       └── speciality/
+│   ├── services/       # External service integrations
+│   ├── App.js
+│   └── index.js
 └── package.json
 ```
 
@@ -77,14 +65,17 @@ npm install
 
 ### 3️⃣ Create `.env` File
 
+Create a `.env` file in the root directory:
+
 ```env
 REACT_APP_API_URL= 'backend URL'
+REACT_APP_URL= 'SignalR WebSocket Hub URL'
 ```
 
 ### 4️⃣ Run the App
 
 ```bash
-npm run dev
+npm start
 ```
 
 ---
@@ -98,6 +89,7 @@ npm run dev
 - ⭐ Rating System
 - 📊 Admin Dashboard with Charts & Statistics
 - 📱 Fully Responsive UI
+- ⚡ **Optimized Architecture**: Centralized design tokens, reduced bundle size (removed unused dependencies), and patched memory leaks.
 
 ---
 
@@ -106,11 +98,12 @@ npm run dev
 | Feature          | Pages                          | Components                               |
 | ---------------- | ------------------------------ | ---------------------------------------- |
 | Appointments     | `features/appointments/pages/` | `features/appointments/components/`      |
-| Doctors          | `features/doctors/pages/`      | `features/doctors/components/`           |
-| Patients         | `features/patients/pages/`     | `features/patients/components/`          |
+| Doctors          | `features/doctor/pages/`       | `features/doctor/components/`            |
+| Patients         | `features/patient/pages/`      | `features/patient/components/`           |
+| Notifications    | `features/notifications/pages/`| `features/notifications/components/`     |
 | SharedComponents | N/A                            | (Navbar, Footer, Cards, Modals, etc.)    |
-| Services         | N/A                            | `services/authService` (Axios API calls) |
-| Context          | N/A                            | `context/` (Auth & User Context)         |
+| API/Services     | N/A                            | `api/` & `services/`                     |
+| Context          | N/A                            | `contexts/` (State Management)           |
 
 ---
 

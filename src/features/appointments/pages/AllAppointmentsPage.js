@@ -1,36 +1,20 @@
 import React, { useEffect, useState } from "react";
-// Services
+import { getAllAppointments } from '../../../services/appointmentService';
+import { getDoctorById } from '../../../services/doctorService';
+import { getPatientById } from '../../../services/patientService';
+import { getDoctorAvailabilityById } from '../../../services/availabilityService';
 import {
-  getAllApointments,
-  getDoctorById,
-  getPatientById,
-  getDoctorAvailabilityById,
-  getRateByAppointmentId,
-} from "../../../services/authService";
-// MUI Components
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Alert,
-  Pagination,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Rating,
-  Stack,
-  Paper,
-  Divider,
-  useTheme,
-  useMediaQuery,
+  Box, Typography, CircularProgress, Pagination,
+  Grid, Container, useTheme, useMediaQuery
 } from "@mui/material";
-// New Custom Components
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import { AppointmentReviewCard } from "../components/MobileAppointmentReviewCard";
-import { AppointmentsReviewTable } from "../components/AppointmentsReviewTable";
 import AppointmentsFilterSection from "../../../components/AppointmentsFilterSection";
+import ViewRatingDialog from "../../../components/ViewRatingDialog";
 
+import { GOLD, GOLD_BG, GOLD_DARK, TEXT_MID } from "../../../theme/tokens";
+/* ── Tokens ── */
 export default function AllAppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,161 +25,137 @@ export default function AllAppointmentsPage() {
 
   const theme = useTheme();
   const isTabletOrMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [ratingAppointmentId, setRatingAppointmentId] = useState(null);
 
-  // --- Rating Dialog States ---
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedRate, setSelectedRate] = useState(null);
-  const [selectedComment, setSelectedComment] = useState("");
-  const [rateLoading, setRateLoading] = useState(false);
-
-  // --- Fetch Appointments ---
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      setLoading(true);
-      try {
-        const res = await getAllApointments(statusFilter, page);
-        setTotalCount(res.totalCount || 0);
-        setPageSize(res.pageSize || 5);
-
-        const detailedAppointments = await Promise.all(
-          (res.data || []).map(async (a) => {
-            try {
-              const [doctorRes, patientRes, availabilityRes] = await Promise.all([
-                getDoctorById(a.doctorId),
-                getPatientById(a.patientId),
-                getDoctorAvailabilityById(a.availabilityId),
-              ]);
-              return {
-                ...a,
-                doctorName: doctorRes.userName || "N/A",
-                patientName: patientRes?.data?.userName || "N/A",
-                startTime: availabilityRes?.startTime,
-                endTime: availabilityRes?.endTime,
-              };
-            } catch (err) {
-              console.error(`Error fetching details for appointment ${a.id}:`, err);
-              return { ...a, doctorName: "Error", patientName: "Error" };
-            }
-          })
-        );
-
-        setAppointments(detailedAppointments);
-      } catch (error) {
-        console.error("Error fetching appointments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAppointments();
-  }, [page, statusFilter]);
-
-  // --- Handlers ---
-  const handlePageChange = (event, value) => setPage(value);
-  const handleApplyFilter = () => setPage(1);
-
-  const handleCloseDialog = () => setOpenDialog(false);
-
-  const handleShowRate = async (appointmentId) => {
-    setOpenDialog(true);
-    setRateLoading(true);
+  const fetchAppointments = async () => {
+    setLoading(true);
     try {
-      const res = await getRateByAppointmentId(appointmentId);
-      setSelectedRate(res?.data?.rate || 0);
-      setSelectedComment(res?.data?.comment || "No comment provided.");
-    } catch (error) {
-      console.error("Error fetching rate:", error);
-      setSelectedRate(null);
-      setSelectedComment("Could not load rating information.");
+      const res = await getAllAppointments(statusFilter, page);
+      const appointmentsData = res.data || res.Data || [];
+      setTotalCount(res.totalCount || res.TotalCount || 0);
+      setPageSize(res.pageSize || res.PageSize || 5);
+
+      const detailed = await Promise.all(
+        appointmentsData.map(async (a) => {
+          try {
+            const [doctorRes, patientRes, availabilityRes] = await Promise.all([
+              getDoctorById(a.doctorId),
+              getPatientById(a.patientId),
+              getDoctorAvailabilityById(a.availabilityId),
+            ]);
+            const doctorData = doctorRes?.data || doctorRes;
+            const patientData = patientRes?.data || patientRes;
+            const availabilityData = availabilityRes?.Data ?? availabilityRes?.data ?? {};
+
+            return {
+              ...a,
+              id: a.id || a.Id,
+              doctorName: doctorData?.userName || doctorData?.UserName || "N/A",
+              patientName: patientData?.userName || patientData?.UserName || "N/A",
+              patientCountry: patientData?.country || patientData?.Country || "N/A",
+              doctorCountry: doctorData?.country || doctorData?.Country || "N/A",
+              startTime: availabilityData?.StartTime ?? availabilityData?.startTime,
+              endTime: availabilityData?.EndTime ?? availabilityData?.endTime,
+            };
+          } catch (err) {
+            return { ...a, doctorName: "Error", patientName: "Error" };
+          }
+        })
+      );
+      setAppointments(detailed);
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
     } finally {
-      setRateLoading(false);
+      setLoading(false);
     }
   };
 
-  // --- Loading State ---
-  if (loading && appointments.length === 0) {
+  useEffect(() => {
+    fetchAppointments();
+  }, [page, statusFilter]);
+
+  const handleApplyFilter = () => setPage(1);
+  const handleShowRate = (appointmentId) => setRatingAppointmentId(appointmentId);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  if (loading && !appointments.length) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress sx={{ color: GOLD }} />
       </Box>
     );
   }
 
-  const totalPages = Math.ceil(totalCount / pageSize);
-
-  // --- RENDER ---
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: "1400px", mx: "auto" }}>
-      <Typography variant="h4" fontWeight="700" mb={4} textAlign="center">
-        All Appointments
-      </Typography>
+    <>
+<Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", py: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+        <Container maxWidth={false} sx={{ px: { xs: 2.5, md: 5, lg: 8 } }}>
 
-      {/* Filter Section */}
-      <AppointmentsFilterSection
-        status={statusFilter}
-        onStatusChange={setStatusFilter}
-        onApply={handleApplyFilter}
-      />
-
-      {/* --- Appointment List --- */}
-      {appointments.length === 0 && !loading ? (
-        <Alert severity="info">No appointments found.</Alert>
-      ) : isTabletOrMobile ? (
-        <Box sx={{ display: "grid", gap: 2 }}>
-          {appointments.map((a) => (
-            <AppointmentReviewCard key={a.id} appointment={a} onShowRate={handleShowRate} />
-          ))}
-        </Box>
-      ) : (
-        <AppointmentsReviewTable appointments={appointments} onShowRate={handleShowRate} />
-      )}
-
-      {/* --- Pagination --- */}
-      {totalPages > 1 && (
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={handlePageChange}
-          color="primary"
-          sx={{ display: "flex", justifyContent: "center", mt: 4 }}
-        />
-      )}
-
-      {/* --- Rating Dialog --- */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle fontWeight={600}>Appointment Rating</DialogTitle>
-        <DialogContent dividers>
-          {rateLoading ? (
-            <Box display="flex" justifyContent="center" py={8}>
-              <CircularProgress />
+          <BreadcrumbHeader currentPage="All Appointments">
+            <Box sx={{ display: { xs: "block", md: "none" } }}>
+              <AppointmentsFilterSection status={statusFilter} onStatusChange={setStatusFilter} onApply={handleApplyFilter} />
             </Box>
-          ) : selectedRate !== null ? (
-            <Stack spacing={3} alignItems="center" py={2}>
-              <Rating value={selectedRate} readOnly size="large" precision={0.5} />
-              <Divider sx={{ width: "100%" }}>
-                <Typography variant="caption" color="text.secondary">
-                  Comment
-                </Typography>
-              </Divider>
-              <Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50", width: "100%" }}>
-                <Typography
-                  sx={{
-                    fontStyle: selectedComment === "No comment provided." ? "italic" : "normal",
-                  }}
-                >
-                  {selectedComment}
-                </Typography>
-              </Paper>
-            </Stack>
-          ) : (
-            <Alert severity="warning">No rating data available for this appointment.</Alert>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleCloseDialog} variant="contained">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          </BreadcrumbHeader>
+
+          {/* Master Container for Filters and Cards */}
+          <Box sx={{ mx: { xs: 0.7, sm: 1.5, md: 3, lg: 6 } }}>
+            <Grid container spacing={4} sx={{ flexWrap: { xs: "wrap", md: "nowrap" } }}>
+
+              {/* Left Side: Filter (Hidden on mobile) */}
+              <Grid item sx={{ width: "300px", flexShrink: 0, display: { xs: "none", md: "block" } }}>
+                <Box sx={{ position: "sticky", top: 100 }}>
+                  <AppointmentsFilterSection status={statusFilter} onStatusChange={setStatusFilter} onApply={handleApplyFilter} forceCard={true} />
+                </Box>
+              </Grid>
+
+              {/* Right Side: Appointments Grid */}
+              <Grid item xs sx={{ minWidth: 0 }}>
+                {appointments.length === 0 && !loading ? (
+                  <Box sx={{ textAlign: "center", py: 8, borderRadius: 4, border: "1px dashed rgba(184,151,42,0.3)", bgcolor: GOLD_BG }}>
+                    <CalendarMonthIcon sx={{ fontSize: 48, color: `${GOLD}66`, mb: 1.5 }} />
+                    <Typography sx={{ color: TEXT_MID, fontWeight: 500 }}>No appointments found.</Typography>
+                  </Box>
+                ) : (
+                  <>
+                    <Grid container spacing={3}>
+                      {appointments.map((a) => (
+                        <Grid item xs={12} sm={6} lg={4} xl={4} key={a.id}>
+                          <AppointmentReviewCard
+                            appointment={a}
+                            onShowRate={handleShowRate}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+
+                    {totalPages > 1 && (
+                      <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+                        <Pagination
+                          count={totalPages} page={page} onChange={(_, v) => setPage(v)}
+                          sx={{
+                            "& .MuiPaginationItem-root": {
+                              borderRadius: 2, fontWeight: 600, fontSize: "0.9rem",
+                              "&.Mui-selected": { bgcolor: GOLD, color: "white", "&:hover": { bgcolor: GOLD_DARK } },
+                              "&:hover:not(.Mui-selected)": { bgcolor: "#fdf8ec", color: GOLD_DARK },
+                            },
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </>
+                )}
+              </Grid>
+            </Grid>
+          </Box>
+        </Container>
+
+        <ViewRatingDialog
+          open={!!ratingAppointmentId}
+          onClose={() => setRatingAppointmentId(null)}
+          appointmentId={ratingAppointmentId}
+        />
+      </Box>
+    </>
   );
 }

@@ -1,18 +1,13 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 import toast from 'react-hot-toast';
-import {
-    getUserNotifications,
-    markAllAsRead as markAllAsReadService,
-    markAsRead as markAsReadService
-} from '../services/notificationService';
+import { getUserNotifications, markAllAsRead as markAllAsReadService, markAsRead as markAsReadService } from '../services/notificationService';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
     const { isAuthenticated } = useAuth();
-
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [page, setPage] = useState(1);

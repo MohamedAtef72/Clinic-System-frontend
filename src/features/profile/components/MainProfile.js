@@ -1,323 +1,152 @@
-import {
-  Avatar,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Box,
-  Paper,
-  Divider,
-  Grid,
-} from "@mui/material";
+import React from "react";
+import { Avatar, Card, CardContent, Typography, Box, Grid, IconButton } from "@mui/material";
 import dayjs from "dayjs";
-import EditSquareIcon from '@mui/icons-material/EditSquare';
-import { useNavigate } from 'react-router-dom';
-import { FaMapMarkerAlt, FaEnvelope, FaCalendarAlt, FaBirthdayCake } from "react-icons/fa";
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { FaMapMarkerAlt, FaEnvelope, FaCalendarAlt, FaBirthdayCake, FaIdCard, FaUserTie } from "react-icons/fa";
 
-export default function MainProfile({ user }) {
-  const navigate = useNavigate();
-
-  const calculateAge = (dob) => {
-    return dayjs().diff(dayjs(dob), "year");
-  };
+import { GOLD, GOLD_BG, GOLD_DARK, GOLD_LIGHT, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
+export default function MainProfile({ user, roles, onEditClick, isEditing }) {
+  const calculateAge = (dob) => dayjs().diff(dayjs(dob), "year");
 
   return (
     <>
-      {/* Main Profile Card */}
-      <Card
-        sx={{
-          borderRadius: 3,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
-          overflow: "hidden",
-          mb: 4,
-          background: "linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%)",
-        }}
-      >
-        {/* Header Background */}
-        <Box
+      <style>{`
+        @keyframes subtleScale {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.02); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
+
+      {/* CARD 1: Identity / Photo Card */}
+      <Grid size={{ xs: 10, md: 4, lg: 3 }} sx={{ display: 'flex' }}>
+        <Card
+          elevation={0}
           sx={{
-            height: 150,
-            background: "#e8e8f0cc",
-            position: "relative",
-            overflow: "hidden",
+            borderRadius: 5, width: '100%',
+            border: `1px solid rgba(184,151,42,0.15)`,
+            boxShadow: "0 10px 40px rgba(0,0,0,0.04)",
+            fontFamily: "'Inter', sans-serif",
+            display: "flex", flexDirection: "column",
+            overflow: "hidden", position: "relative",
+            background: "#fff",
+            "&:hover .avatar-ring": {
+              animation: "subtleScale 2s infinite ease-in-out"
+            }
           }}
-        />
-
-        <CardContent sx={{ pt: 0, pb: 4, px: { xs: 2, sm: 4 } }}>
-          {/* Avatar Section */}
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: -8, mb: 3 }}>
-            <Avatar
-              src={user.user.imagePath}
-              alt={user.user.userName}
-              sx={{
-                width: 160,
-                height: 160,
-                border: "8px solid white",
-                mb: 2,
-                backgroundColor: "#E3F2FD",
-                fontSize: "60px",
-              }}
-            />
-
-            <Typography
-              variant="h4"
-              sx={{
-                textAlign: "center",
-                fontWeight: 800,
-                color: "#1e293b",
-                mb: 0.5,
-              }}
-            >
-              {user.user.userName}
-            </Typography>
-
-            <Typography
-              variant="body1"
-              sx={{
-                color: "#64748b",
-                fontWeight: 600,
-                mb: 2,
-              }}
-            >
-              {user.role[0]}
-            </Typography>
-
-            <Button
-              variant="contained"
-              onClick={() => navigate('/edit-Profile')}
-              startIcon={<EditSquareIcon />}
-              sx={{
-                background: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
-                textTransform: 'none',
-                fontSize: '16px',
-                py: 1.2,
-                px: 3,
-                borderRadius: 2,
-                fontWeight: 600,
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 10px 30px rgba(33, 150, 243, 0.3)",
-                },
-              }}
-            >
-              Edit Profile
-            </Button>
+        >
+          {/* Premium Top Background Detail */}
+          <Box
+            sx={{
+              position: "absolute", top: 0, left: 0, right: 0, height: "140px",
+              background: `linear-gradient(180deg, ${GOLD_BG} 0%, rgba(255,255,255,0) 100%)`,
+              zIndex: 0
+            }}
+          >
+            <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.4, backgroundImage: `radial-gradient(circle at 2px 2px, ${GOLD} 1px, transparent 0)`, backgroundSize: "24px 24px" }} />
           </Box>
 
-          <Divider sx={{ my: 3 }} />
+          <CardContent sx={{ pt: 8, pb: 6, px: 4, textAlign: "center", flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
 
-          {/* Information Grid */}
-          <Grid container spacing={2.5}>
-            {/* Email */}
-            <Grid item xs={12} sm={6}>
-              <Paper
-                elevation={0}
+            {/* Elegant Avatar */}
+            <Box className="avatar-ring" sx={{ position: "relative", mb: 3 }}>
+              {/* Outer decorative ring */}
+              <Box sx={{ position: "absolute", inset: -8, borderRadius: "50%", border: `1px dashed ${GOLD}60`, rotate: "-15deg" }} />
+              {/* Inner shadow ring */}
+              <Box sx={{ position: "absolute", inset: -3, borderRadius: "50%", border: `2px solid ${GOLD_LIGHT}`, zIndex: 0 }} />
+
+              <Avatar
+                src={user.imagePath}
+                alt={user.userName}
                 sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  background: "#F8FBFF",
-                  border: "2px solid #E3F2FD",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: "#E3F2FD",
-                    borderColor: "#2196F3",
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 20px rgba(33, 150, 243, 0.15)",
-                  },
+                  width: 140, height: 140, border: "4px solid white",
+                  background: `linear-gradient(135deg, #fdfdfc, ${GOLD_BG})`,
+                  color: GOLD_DARK, fontSize: "3.5rem", fontWeight: 700,
+                  boxShadow: `0 8px 24px rgba(184,151,42,0.2)`,
+                  position: "relative", zIndex: 1
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-                  <Box sx={{ mt: 0.5, color: "#2196F3", display: "flex" }}>
-                    <FaEnvelope size={20} />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: "block",
-                        color: "#64748b",
-                        fontWeight: 700,
-                        mb: 0.5,
-                        textTransform: "uppercase",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Email
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#1e293b",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                        wordBreak: "break-all",
-                      }}
-                    >
-                      {user.user.email}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Paper>
-            </Grid>
+                {user.userName?.charAt(0).toUpperCase()}
+              </Avatar>
+            </Box>
 
-            {/* Country */}
-            <Grid item xs={12} sm={6}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  background: "#F0F9FF",
-                  border: "2px solid #DBEAFE",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: "#DBEAFE",
-                    borderColor: "#0EA5E9",
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 20px rgba(14, 165, 233, 0.15)",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-                  <Box sx={{ mt: 0.5, color: "#0EA5E9", display: "flex" }}>
-                    <FaMapMarkerAlt size={20} />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: "block",
-                        color: "#64748b",
-                        fontWeight: 700,
-                        mb: 0.5,
-                        textTransform: "uppercase",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Country
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#1e293b",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}
-                    >
-                      {user.user.country}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Paper>
-            </Grid>
+            {/* User Name */}
+            <Typography variant="h4" sx={{ fontWeight: 800, color: TEXT_DARK, letterSpacing: "-0.5px", fontSize: "1.8rem", mb: 1 }}>
+              {user.userName}
+            </Typography>
 
-            {/* Age */}
-            <Grid item xs={12} sm={6}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  background: "#FAF5FF",
-                  border: "2px solid #F3E8FF",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: "#F3E8FF",
-                    borderColor: "#A855F7",
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 20px rgba(168, 85, 247, 0.15)",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-                  <Box sx={{ mt: 0.5, color: "#A855F7", display: "flex" }}>
-                    <FaBirthdayCake size={20} />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: "block",
-                        color: "#64748b",
-                        fontWeight: 700,
-                        mb: 0.5,
-                        textTransform: "uppercase",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Age
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#1e293b",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}
-                    >
-                      {user?.user?.dateOfBirth ? calculateAge(user.user.dateOfBirth) : "N/A"} years
-                    </Typography>
-                  </Box>
-                </Box>
-              </Paper>
-            </Grid>
+            {/* Role Badge */}
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1, border: `1px solid ${GOLD}40`, px: 2.5, py: 0.7, borderRadius: 50, bgcolor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
+              <FaUserTie size={12} color={GOLD} />
+              <Typography sx={{ color: TEXT_MID, fontWeight: 700, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "1px" }}>
+                {roles && roles.length > 0 ? roles[0] : "User"}
+              </Typography>
+            </Box>
 
-            {/* Registration Date */}
-            <Grid item xs={12} sm={6}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  background: "#FFF7ED",
-                  border: "2px solid #FEEDDE",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: "#FEEDDE",
-                    borderColor: "#F97316",
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 8px 20px rgba(249, 115, 22, 0.15)",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-                  <Box sx={{ mt: 0.5, color: "#F97316", display: "flex" }}>
-                    <FaCalendarAlt size={20} />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: "block",
-                        color: "#64748b",
-                        fontWeight: 700,
-                        mb: 0.5,
-                        textTransform: "uppercase",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Member Since
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#1e293b",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}
-                    >
-                      {user.user.registerDate
-                        ? dayjs(user.user.registerDate).format("MMM DD, YYYY")
-                        : "N/A"}
-                    </Typography>
-                  </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* CARD 2: Personal Information (Hides when Editing) */}
+      {!isEditing && (
+        <Grid size={{ xs: 12, md: 4, lg: 3.2 }} sx={{ display: 'flex' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 5, width: '100%', border: `1px solid rgba(184,151,42,0.15)`, boxShadow: "0 10px 40px rgba(0,0,0,0.04)", fontFamily: "'Inter', sans-serif",
+              display: "flex", flexDirection: "column", background: "#fff"
+            }}
+          >
+            <Box sx={{ borderBottom: `1px solid rgba(184,151,42,0.15)`, bgcolor: "#f9f8f5", px: { xs: 3, sm: 4 }, py: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: 3, background: `linear-gradient(135deg, ${GOLD}, #96791e)`, display: "flex", alignItems: "center", justifyContent: "center", color: 'white', boxShadow: `0 4px 12px ${GOLD}40` }}>
+                  <FaIdCard size={18} />
                 </Box>
-              </Paper>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: TEXT_DARK, letterSpacing: "-0.5px", fontSize: "1.2rem" }}>
+                  Personal Details
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={onEditClick}
+                sx={{ color: GOLD_DARK, bgcolor: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", "&:hover": { bgcolor: GOLD_BG } }}
+                title="Edit Profile"
+              >
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Box>
+
+            <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {[
+                  { icon: <FaEnvelope size={18} />, label: "Email", value: user.email },
+                  { icon: <FaMapMarkerAlt size={18} />, label: "Country", value: user.country || "Not specified" },
+                  { icon: <FaBirthdayCake size={18} />, label: "Age", value: user.dateOfBirth ? `${calculateAge(user.dateOfBirth)} years` : "Not specified" },
+                  { icon: <FaCalendarAlt size={18} />, label: "Member Since", value: user.registerDate ? dayjs(user.registerDate).format("DD/MM/YYYY") : "Not specified" },
+                ].map((item, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      display: "flex", alignItems: "center", gap: 2, py: 2, borderBottom: idx < 3 ? `1px solid rgba(184,151,42,0.08)` : "none"
+                    }}
+                  >
+                    <Box sx={{ color: GOLD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {item.icon}
+                    </Box>
+                    <Box sx={{ display: "flex", flex: 1, gap: 1, alignItems: "center" }}>
+                      <Typography sx={{ color: TEXT_MID, fontWeight: 600, fontSize: "0.95rem" }}>
+                        {item.label}:
+                      </Typography>
+                      <Typography sx={{ color: TEXT_DARK, fontWeight: 700, fontSize: "0.95rem", wordBreak: "break-all" }}>
+                        {item.value}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
     </>
   );
 }

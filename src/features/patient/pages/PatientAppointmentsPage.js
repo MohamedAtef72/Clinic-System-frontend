@@ -1,37 +1,17 @@
 import React, { useEffect, useState } from "react";
-// Services & Context
-import {
-  getPatientAppointments,
-  getDoctorById,
-  getDoctorAvailabilityById,
-  getVisitById,
-  rateDoctor,
-  updateDoctorRate,
-  getRateByAppointmentId,
-} from "../../../services/authService";
+import { getPatientAppointments } from '../../../services/appointmentService';
+import { getDoctorById } from '../../../services/doctorService';
+import { getDoctorAvailabilityById } from '../../../services/availabilityService';
+import { getVisitById } from '../../../services/visitService';
+import { rateDoctor, updateDoctorRate, getRateByAppointmentId } from '../../../services/ratingService';
 import { useAuth } from "../../../contexts/AuthContext";
-// MUI Components
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Alert,
-  Pagination,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Rating,
-  Stack,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
-// New Custom Component
+import { Box, Typography, CircularProgress, Alert, Pagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Rating, Stack, useTheme, useMediaQuery, Container, Grid, Drawer, IconButton } from "@mui/material";
 import { PatientAppointmentCard } from "../components/PatientAppointmentCard";
+import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import AppointmentsFilterSection from "../../../components/AppointmentsFilterSection";
 
+
+import { GOLD, GOLD_BG, GOLD_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function PatientAppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,15 +20,11 @@ export default function PatientAppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState("");
 
   const { user } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Visit Dialog State
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
   const [visitDetails, setVisitDetails] = useState(null);
   const [visitLoading, setVisitLoading] = useState(false);
 
-  // Rating Dialog State
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
@@ -59,7 +35,6 @@ export default function PatientAppointmentsPage() {
   const [ratingSuccess, setRatingSuccess] = useState(false);
   const [hasExistingRating, setHasExistingRating] = useState(false);
 
-  // --- DATA FETCHING ---
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!user) return;
@@ -71,43 +46,40 @@ export default function PatientAppointmentsPage() {
         const detailedAppointments = await Promise.all(
           (res.data || []).map(async (a) => {
             const appointmentData = { ...a, doctor: {}, hasRated: false, rateId: null };
-
             try {
               const doctorRes = await getDoctorById(a.doctorId);
-              appointmentData.doctor = doctorRes;
-              appointmentData.doctorPrice = doctorRes.consulationPrice;
-            } catch (err) {
-              console.error(`Error fetching doctor for appointment ${a.id}:`, err);
-            }
-
+              const dData = doctorRes?.data || doctorRes;
+              appointmentData.doctor = {
+                ...dData,
+                userName: dData?.userName || dData?.UserName || "N/A",
+                country: dData?.country || dData?.Country || "N/A",
+                specialityName: dData?.specialityName || dData?.SpecialityName || "N/A",
+              };
+              appointmentData.doctorPrice = dData?.consulationPrice || dData?.ConsulationPrice || 0;
+            } catch (err) { }
             try {
               const availabilityRes = await getDoctorAvailabilityById(a.availabilityId);
-              appointmentData.startTime = availabilityRes.startTime;
-              appointmentData.endTime = availabilityRes.endTime;
+              const avail = availabilityRes?.Data ?? availabilityRes?.data ?? {};
+              appointmentData.startTime = avail.StartTime ?? avail.startTime;
+              appointmentData.endTime = avail.EndTime ?? avail.endTime;
             } catch (err) {
               appointmentData.startTime = a.startTime || a.appointmentDate;
               appointmentData.endTime = a.endTime;
             }
-
             try {
               if (a.appointmentStatus === "Completed") {
                 const ratingRes = await getRateByAppointmentId(a.id);
                 if (ratingRes?.data) {
                   appointmentData.hasRated = true;
-                  appointmentData.rateId = ratingRes.data.id; 
+                  appointmentData.rateId = ratingRes.data.id;
                 }
               }
-            } catch {
-              appointmentData.hasRated = false;
-            }
-
+            } catch { }
             return appointmentData;
           })
         );
-
         setAppointments(detailedAppointments);
       } catch (error) {
-        console.error("Error fetching appointments:", error);
       } finally {
         setLoading(false);
       }
@@ -116,7 +88,6 @@ export default function PatientAppointmentsPage() {
     fetchAppointments();
   }, [user, pageNumber, statusFilter]);
 
-  // --- HANDLERS ---
   const handlePageChange = (event, value) => setPageNumber(value);
   const handleApplyFilter = () => setPageNumber(1);
   const handleCloseVisitDialog = () => setVisitDialogOpen(false);
@@ -130,7 +101,6 @@ export default function PatientAppointmentsPage() {
       const res = await getVisitById(visitId);
       setVisitDetails(res.data || null);
     } catch (error) {
-      console.error("Error fetching visit details:", error);
       setVisitDetails(null);
     } finally {
       setVisitLoading(false);
@@ -163,142 +133,135 @@ export default function PatientAppointmentsPage() {
     setRatingLoading(true);
     try {
       if (!hasExistingRating) {
-        // Add new rating
         await rateDoctor({
-          appointmentId: selectedAppointmentId,
-          doctorId: selectedDoctor.id,
-          patientId: user.id,
-          rate: ratingValue,
-          comment,
+          appointmentId: selectedAppointmentId, doctorId: selectedDoctor.id, patientId: user.id, rate: ratingValue, comment,
         });
         setRatingSuccess(true);
-        setAppointments((prev) =>
-          prev.map((app) =>
-            app.id === selectedAppointmentId
-              ? { ...app, hasRated: true }
-              : app
-          )
-        );
+        setAppointments((prev) => prev.map((app) => app.id === selectedAppointmentId ? { ...app, hasRated: true } : app));
       } else if (selectedRateId) {
-        // Update existing rating using rateId
-        await updateDoctorRate(selectedRateId, {
-          rate: ratingValue,
-          comment: comment,
-        });
+        await updateDoctorRate(selectedRateId, { rate: ratingValue, comment: comment });
         setRatingSuccess(true);
       }
-    } catch (err) {
-      console.error("Error submitting rating:", err);
-    } finally {
+    } catch (err) { } finally {
       setRatingLoading(false);
     }
   };
 
-  // --- RENDER ---
-  if (loading && appointments.length === 0) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  const totalPages = Math.ceil(totalCount / 5);
+  const dialogInputSx = {
+    "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: GOLD, borderWidth: "2px" },
+    "& .MuiInputLabel-root.Mui-focused": { color: GOLD_DARK },
+  };
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: "900px", mx: "auto" }}>
-      <Typography variant="h4" fontWeight="700" mb={4} textAlign="center">
-        My Appointments
-      </Typography>
+    <>
+<Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", py: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+        <Container maxWidth="xl">
 
-      {/* Filter Section */}
-      <AppointmentsFilterSection
-        status={statusFilter}
-        onStatusChange={setStatusFilter}
-        onApply={handleApplyFilter}
-      />
+          <BreadcrumbHeader currentPage="My Appointments">
+            <Box sx={{ display: { xs: "block", md: "none" } }}>
+              <AppointmentsFilterSection status={statusFilter} onStatusChange={setStatusFilter} />
+            </Box>
+          </BreadcrumbHeader>
 
-      {appointments.length === 0 && !loading ? (
-        <Alert severity="info">You have no appointments</Alert>
-      ) : (
-        <Stack spacing={3}>
-          {appointments.map((a) => (
-            <PatientAppointmentCard
-              key={a.id}
-              appointment={a}
-              onShowNotes={handleShowNotes}
-              onRateDoctor={() =>
-                handleOpenRating(a.doctor, a.id, a.hasRated, a.rateId)
-              }
-            />
-          ))}
-        </Stack>
-      )}
+          {/* Master Container for Filters and Cards */}
+          <Box sx={{ mx: { xs: 0.7, sm: 1.5, md: 3, lg: 6 } }}>
+            <Grid container spacing={2} sx={{ flexWrap: { xs: "wrap", md: "nowrap" } }}>
 
-      {totalPages > 1 && (
-        <Pagination
-          count={totalPages}
-          page={pageNumber}
-          onChange={handlePageChange}
-          color="primary"
-          sx={{ display: "flex", justifyContent: "center", mt: 4 }}
-        />
-      )}
+              {/* Left Side: Filter (Hidden on mobile) */}
+              <Grid item sx={{ width: "300px", flexShrink: 0, display: { xs: "none", md: "block" } }}>
+                <Box sx={{ position: "sticky", top: 100 }}>
+                  <AppointmentsFilterSection status={statusFilter} onStatusChange={setStatusFilter} forceCard={true} />
+                </Box>
+              </Grid>
 
-      {/* Visit Dialog */}
-      <Dialog open={visitDialogOpen} onClose={handleCloseVisitDialog} maxWidth="sm" fullWidth>
-        <DialogTitle fontWeight={600}>Visit Details</DialogTitle>
-        <DialogContent dividers>
-          {visitLoading ? (
-            <Box display="flex" justifyContent="center" py={8}><CircularProgress /></Box>
-          ) : visitDetails ? (
-            <Stack spacing={2} sx={{ py: 2 }}>
-              <TextField label="Doctor Notes" multiline rows={4} value={visitDetails.doctorNotes || 'No notes provided.'} InputProps={{ readOnly: true }} />
-              <TextField label="Prescribed Medicine" multiline rows={4} value={visitDetails.medicine || 'No medicine prescribed.'} InputProps={{ readOnly: true }} />
-            </Stack>
-          ) : (
-            <Alert severity="warning">No visit details are available for this appointment.</Alert>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleCloseVisitDialog} variant="contained">Close</Button>
-        </DialogActions>
-      </Dialog>
+              {/* Right Side: Appointments Grid */}
+              <Grid item xs sx={{ minWidth: 0 }}>
+                {loading && appointments.length === 0 ? (
+                  <Box display="flex" justifyContent="center" alignItems="center" py={10}>
+                    <CircularProgress sx={{ color: GOLD }} />
+                  </Box>
+                ) : appointments.length === 0 ? (
+                  <Alert severity="info" sx={{ borderRadius: 3 }}>You have no appointments matching this criteria.</Alert>
+                ) : (
+                  <>
+                    <Grid container spacing={3}>
+                      {appointments.map((a) => (
+                        <Grid item key={a.id}>
+                          <PatientAppointmentCard appointment={a} onShowNotes={handleShowNotes} onRateDoctor={() => handleOpenRating(a.doctor, a.id, a.hasRated, a.rateId)} />
+                        </Grid>
+                      ))}
+                    </Grid>
 
-      {/* Rating Dialog */}
-      <Dialog open={ratingDialogOpen} onClose={handleCloseRatingDialog} maxWidth="xs" fullWidth>
-        <DialogTitle fontWeight={600} textAlign="center">
-          Rate Dr. {selectedDoctor?.userName}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} alignItems="center" sx={{ pt: 1 }}>
-            {ratingLoading ? (
-              <CircularProgress />
-            ) : ratingSuccess ? (
-              <Alert severity="success" sx={{ width: "100%" }}>
-                Thank you for your feedback!
-              </Alert>
-            ) : (
-              <>
-                <Rating name="doctor-rating" value={ratingValue} onChange={(e, val) => setRatingValue(val)} size="large" />
-                <TextField label="Comment (optional)" fullWidth multiline rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
-              </>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-          <Button onClick={handleCloseRatingDialog}>Cancel</Button>
-          {!ratingSuccess && (
-            <Button
-              onClick={handleConfirmRating}
-              variant="contained"
-              disabled={ratingLoading || !ratingValue}
-            >
-              {hasExistingRating ? "Update Rating" : "Submit Rating"}
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
-    </Box>
+                    {Math.ceil(totalCount / 5) > 1 && (
+                      <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+                        <Pagination
+                          count={Math.ceil(totalCount / 5)} page={pageNumber} onChange={handlePageChange}
+                          sx={{
+                            "& .MuiPaginationItem-root": {
+                              borderRadius: 2, fontWeight: 600, fontSize: "0.9rem",
+                              "&.Mui-selected": { bgcolor: GOLD, color: "white", "&:hover": { bgcolor: GOLD_DARK } },
+                              "&:hover:not(.Mui-selected)": { bgcolor: "#fdf8ec", color: GOLD_DARK },
+                            },
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </>
+                )}
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Visit Dialog */}
+          <Dialog open={visitDialogOpen} onClose={handleCloseVisitDialog} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
+            <DialogTitle sx={{ fontWeight: 700, bgcolor: GOLD_BG, borderBottom: `1px solid ${GOLD}20` }}>Visit Details</DialogTitle>
+            <DialogContent sx={{ pt: "24px !important" }}>
+              {visitLoading ? (
+                <Box display="flex" justifyContent="center" py={8}><CircularProgress sx={{ color: GOLD }} /></Box>
+              ) : visitDetails ? (
+                <Stack spacing={3} sx={{ py: 2 }}>
+                  <TextField label="Doctor Notes" multiline rows={4} value={visitDetails.doctorNotes || 'No notes provided.'} InputProps={{ readOnly: true }} sx={dialogInputSx} />
+                  <TextField label="Prescribed Medicine" multiline rows={4} value={visitDetails.medicine || 'No medicine prescribed.'} InputProps={{ readOnly: true }} sx={dialogInputSx} />
+                </Stack>
+              ) : (
+                <Alert severity="warning">No visit details are available for this appointment.</Alert>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 2, borderTop: `1px solid ${GOLD}20` }}>
+              <Button onClick={handleCloseVisitDialog} sx={{ color: TEXT_MID, fontWeight: 600 }}>Close</Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Rating Dialog */}
+          <Dialog open={ratingDialogOpen} onClose={handleCloseRatingDialog} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
+            <DialogTitle sx={{ fontWeight: 700, bgcolor: GOLD_BG, borderBottom: `1px solid ${GOLD}20`, textAlign: "center" }}>
+              Rate Dr. {selectedDoctor?.userName}
+            </DialogTitle>
+            <DialogContent sx={{ pt: "24px !important" }}>
+              <Stack spacing={3} alignItems="center">
+                {ratingLoading ? (
+                  <Box py={5}><CircularProgress sx={{ color: GOLD }} /></Box>
+                ) : ratingSuccess ? (
+                  <Alert severity="success" sx={{ width: "100%", borderRadius: 2 }}>Thank you for your feedback!</Alert>
+                ) : (
+                  <>
+                    <Rating name="doctor-rating" value={ratingValue} onChange={(e, val) => setRatingValue(val)} size="large" sx={{ color: GOLD, fontSize: "3rem" }} />
+                    <TextField label="Comment (optional)" fullWidth multiline rows={3} value={comment} onChange={(e) => setComment(e.target.value)} sx={dialogInputSx} />
+                  </>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, justifyContent: "space-between", borderTop: `1px solid ${GOLD}20` }}>
+              <Button onClick={handleCloseRatingDialog} sx={{ color: TEXT_MID, fontWeight: 600 }}>Close</Button>
+              {!ratingSuccess && (
+                <Button onClick={handleConfirmRating} variant="contained" disabled={ratingLoading || !ratingValue} sx={{ bgcolor: GOLD, color: "white", borderRadius: 50, px: 3, "&:hover": { bgcolor: GOLD_DARK } }}>
+                  {hasExistingRating ? "Update Rating" : "Submit Rating"}
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
+        </Container>
+      </Box>
+    </>
   );
 }
