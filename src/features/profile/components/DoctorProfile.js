@@ -1,165 +1,68 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Paper,
-  Grid,
-} from "@mui/material";
+import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
 import dayjs from "dayjs";
-import {
-  FaStethoscope,
-  FaAward,
-  FaClock,
-} from "react-icons/fa";
+import { FaStethoscope, FaAward } from "react-icons/fa";
 
+import { GOLD, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function DoctorProfile({ user }) {
-const calculateExperience = (registerDate) => {
-    // 1. Calculate the total number of months
+  const calculateExperience = (registerDate) => {
     const totalMonths = dayjs().diff(dayjs(registerDate), "months");
-
-    // 2. Calculate the number of full years
     const years = Math.floor(totalMonths / 12);
-
-    // 3. Calculate the remaining months
     const months = totalMonths % 12;
-
-    // 4. Return a clear string
-    if (years > 0) {
-      return `${years} year(s) and ${months} month(s)`;
-    } else {
-      return `${months} months`;
-    }
+    if (years > 0) return `${years} year(s) and ${months} month(s)`;
+    return `${months} months`;
   };
 
   return (
-    <Card
-      sx={{
-        borderRadius: 3,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
-        overflow: "hidden",
-        background: "linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%)",
-      }}
-    >
-      <CardContent sx={{ pt: 4, pb: 4, px: { xs: 2, sm: 4 } }}>
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 800,
-            color: "#1e293b",
-            mb: 3,
-            textAlign: "center",
-          }}
-        >
-          👨‍⚕️ Doctor Information
-        </Typography>
+    <Grid size={{ xs: 12, md: 4, lg: 3.2 }} sx={{ display: 'flex' }}>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 5, width: '100%',
+          border: `1px solid rgba(184,151,42,0.15)`,
+          boxShadow: "0 10px 40px rgba(0,0,0,0.04)",
+          fontFamily: "'Inter', sans-serif",
+          display: "flex", flexDirection: "column", background: "#fff"
+        }}
+      >
+        <Box sx={{ borderBottom: `1px solid rgba(184,151,42,0.15)`, bgcolor: "#f9f8f5", px: { xs: 3, sm: 4 }, py: 3, display: "flex", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box sx={{ width: 40, height: 40, borderRadius: 3, background: `linear-gradient(135deg, ${GOLD}, #96791e)`, display: "flex", alignItems: "center", justifyContent: "center", color: 'white', boxShadow: `0 4px 12px ${GOLD}40` }}>
+              <FaStethoscope size={18} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: TEXT_DARK, letterSpacing: "-0.5px", fontSize: "1.2rem" }}>
+              Medical Details
+            </Typography>
+          </Box>
+        </Box>
 
-        <Grid container spacing={2.5}>
-          {/* Speciality */}
-          <Grid item xs={12} sm={6}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: 2,
-                background: "#F0FDF4",
-                border: "2px solid #DCFCE7",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  background: "#DCFCE7",
-                  borderColor: "#10B981",
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 8px 20px rgba(16, 185, 129, 0.15)",
-                },
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-                <Box sx={{ mt: 0.5, color: "#10B981", display: "flex" }}>
-                  <FaStethoscope size={20} />
+        <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {[
+              { icon: <FaStethoscope size={18} />, label: "Speciality", value: user.specialityName || "Not specified" },
+              { icon: <FaAward size={18} />, label: "Experience", value: user?.registerDate ? calculateExperience(user.registerDate) : "Not specified" },
+            ].map((item, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  display: "flex", alignItems: "center", gap: 2, p: 2, borderBottom: idx < 1 ? `1px solid rgba(184,151,42,0.08)` : "none"
+                }}
+              >
+                <Box sx={{ color: GOLD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {item.icon}
                 </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: "block",
-                      color: "#64748b",
-                      fontWeight: 700,
-                      mb: 0.5,
-                      textTransform: "uppercase",
-                      fontSize: "12px",
-                    }}
-                  >
-                    Speciality
+                <Box sx={{ display: "flex", flex: 1, gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+                  <Typography sx={{ color: TEXT_MID, fontWeight: 600, fontSize: "0.95rem" }}>
+                    {item.label}:
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#1e293b",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                    }}
-                  >
-                    {user.user.specialityName || "N/A"}
+                  <Typography sx={{ color: TEXT_DARK, fontWeight: 700, fontSize: "0.95rem" }}>
+                    {item.value}
                   </Typography>
                 </Box>
               </Box>
-            </Paper>
-          </Grid>
-
-          {/* Experience */}
-          <Grid item xs={12} sm={6}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: 2,
-                background: "#F0FDF4",
-                border: "2px solid #DCFCE7",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  background: "#DCFCE7",
-                  borderColor: "#10B981",
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 8px 20px rgba(16, 185, 129, 0.15)",
-                },
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-                <Box sx={{ mt: 0.5, color: "#10B981", display: "flex" }}>
-                  <FaAward size={20} />
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: "block",
-                      color: "#64748b",
-                      fontWeight: 700,
-                      mb: 0.5,
-                      textTransform: "uppercase",
-                      fontSize: "12px",
-                    }}
-                  >
-                    Experience
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#1e293b",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                    }}
-                  >
-                    {user?.user?.registerDate
-                      ? calculateExperience(user.user.registerDate)
-                      : "N/A"}{" "}
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
+    </Grid>
   );
 }

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { currentUser, login as apiLogin, logout as apiLogout } from "../services/authService";
+import { currentUser } from '../services/userService';
+import { login as apiLogin, logout as apiLogout } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -16,7 +17,6 @@ export const AuthProvider = ({ children }) => {
       setUser(res.user);
       setIsAuthenticated(res.isAuthenticated);
     } catch (err) {
-      console.error("Auth refresh failed:", err);
       setUser(null);
       setIsAuthenticated(false);
     } finally {

@@ -1,32 +1,39 @@
 import React from "react";
 import { Box, Pagination } from "@mui/material";
 
+import { GOLD, GOLD_BG, GOLD_DARK } from "../../../theme/tokens";
 export default function NotificationsPagination({ page, totalPages, onChange }) {
   if (totalPages <= 1) return null;
 
   return (
     <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
       <Pagination
-        id="notifications-pagination"
         count={totalPages}
         page={page}
         onChange={onChange}
-        color="primary"
         shape="rounded"
         showFirstButton
         showLastButton
         sx={{
           "& .MuiPaginationItem-root": {
-            color: "#000000",
-            borderColor: "#000000",
+            color: "#4a4a6a",
+            fontWeight: 600,
+            borderRadius: 2,
+            transition: "all 0.2s",
+            border: "1px solid transparent",
           },
           "& .MuiPaginationItem-root.Mui-selected": {
-            background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+            background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`,
             color: "white",
             fontWeight: 700,
+            boxShadow: `0 4px 12px ${GOLD}40`,
+            border: "none",
+            "&:hover": { background: GOLD_DARK },
           },
-          "& .MuiPaginationItem-root:hover": {
-            backgroundColor: "rgba(25,118,210,0.15)",
+          "& .MuiPaginationItem-root:not(.Mui-selected):hover": {
+            backgroundColor: GOLD_BG,
+            borderColor: `${GOLD}40`,
+            color: GOLD_DARK,
           },
         }}
       />

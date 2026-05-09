@@ -5,8 +5,11 @@ export const getUserNotifications = async (pageNumber) => {
         const response = await api.get(`/Notification/User?pageNumber=${pageNumber}`);
         return response.data;
     } catch (error) {
-        console.error("Error fetching user notifications:", error);
-        throw error;
+        if (error.response.status == 404) { return []; }
+        throw {
+            message: error.response?.data?.message,
+            status: error.response?.status
+        }
     }
 };
 
@@ -15,8 +18,10 @@ export const markAsRead = async (notificationId) => {
         const response = await api.post(`/Notification/MarkAsRead/${notificationId}`);
         return response.data;
     } catch (error) {
-        console.error("Error marking notification as read:", error);
-        throw error;
+        throw {
+            message: error.response?.data?.message,
+            status: error.response?.status
+        }
     }
 };
 
@@ -25,7 +30,9 @@ export const markAllAsRead = async () => {
         const response = await api.post("/Notification/MarkAllAsRead");
         return response.data;
     } catch (error) {
-        console.error("Error marking all notifications as read:", error);
-        throw error;
+        throw {
+            message: error.response?.data?.message,
+            status: error.response?.status
+        }
     }
 };
