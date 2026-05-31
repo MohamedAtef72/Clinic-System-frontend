@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ── CSS custom properties ── */
+:root {
+  --gold: #b8972a;
+  --gold-dark: #96791e;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -12,4 +18,93 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Shared keyframe animations
+   Defined once here; referenced via sx={{ animation: "..." }}
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Navbar entrance */
+@keyframes navIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* Notification badge pulse */
+@keyframes badgeBeat {
+  0%,100% { transform: scale(1);   }
+  50%     { transform: scale(1.4); }
+}
+
+/* Search bar expand */
+@keyframes searchSlide {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+
+/* Left auth panel fade-in */
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+/* Right auth form fade-in */
+@keyframes formFadeIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+/* Gentle float (used on lock/icon badges) */
+@keyframes floatY {
+  0%,100% { transform: translateY(0);  }
+  50%     { transform: translateY(-8px); }
+}
+
+/* Gold shimmer on gradient text */
+@keyframes shimmerGold {
+  0%,100% { background-position: 0%   50%; }
+  50%     { background-position: 100% 50%; }
+}
+
+/* Spinner entrance */
+@keyframes spinnerFade {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+
+/* Multi-step form slide */
+@keyframes stepSlide {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+/* Skeleton loading pulse */
+@keyframes pulse {
+  0%,100% { opacity: 0.6; }
+  50%     { opacity: 1;   }
+}
+
+/* ── Gold focus ring — global MUI override ── */
+/* Applied via className="gold-input" or "gold-select" on TextFields / Selects */
+.gold-input .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gold) !important;
+}
+.gold-input .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gold) !important;
+  border-width: 2px !important;
+}
+.gold-input .MuiInputLabel-root.Mui-focused {
+  color: var(--gold) !important;
+}
+
+.gold-select .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gold) !important;
+}
+.gold-select .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gold) !important;
+  border-width: 2px !important;
+}
+.gold-select .MuiInputLabel-root.Mui-focused {
+  color: var(--gold) !important;
 }

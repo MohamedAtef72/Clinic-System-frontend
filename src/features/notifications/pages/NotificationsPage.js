@@ -7,10 +7,12 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
-import { getUserNotifications } from "../../../services/notificationService";
 import { useNotifications } from "../../../contexts/NotificationContext";
 import NotificationCard from "../components/NotificationCard";
 import NotificationsPagination from "../components/NotificationsPagination";
+import { useNotificationsList } from "../hooks/useNotificationsQuery";
+import EmptyState from "../../../components/EmptyState";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 // ── Tokens ──
@@ -25,42 +27,24 @@ const normalize = (n) => ({
 
 export default function NotificationsPage() {
   const { markNotificationAsRead, markAllNotificationsAsRead } = useNotifications();
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading]             = useState(false);
-  const [page, setPage]                   = useState(1);
-  const [totalPages, setTotalPages]       = useState(1);
-  const [totalCount, setTotalCount]       = useState(0);
-  const [markingAll, setMarkingAll]       = useState(false);
+  const [page, setPage] = useState(1);
+  const [markingAll, setMarkingAll] = useState(false);
+  const queryClient = useQueryClient();
 
+  const { data: notificationsData, isLoading: loading } = useNotificationsList(page);
+
+  const rawNotifications = notificationsData?.Data ?? notificationsData?.data ?? [];
+  const totalCount = notificationsData?.totalCount ?? notificationsData?.TotalCount ?? rawNotifications.length;
+  const pageSize = notificationsData?.pageSize ?? notificationsData?.PageSize ?? 6;
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+  const notifications = rawNotifications.map(normalize);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-  const fetchPage = useCallback(async (pageNum) => {
-    setLoading(true);
-    try {
-      const response = await getUserNotifications(pageNum);
-      const raw      = response?.Data ?? response?.data ?? [];
-      const count    = response?.totalCount ?? response?.TotalCount ?? raw.length;
-      const pageSize = response?.pageSize ?? response?.PageSize ?? 6;
-      const pages    = Math.ceil(count / pageSize) || 1;
-
-      setNotifications(raw.map(normalize));
-      setTotalCount(count);
-      setTotalPages(pages);
-    } catch (err) {
-      console.error("Failed to fetch notifications:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPage(page);
-  }, [page, fetchPage]);
 
   const handleMarkRead = async (id) => {
     try {
       await markNotificationAsRead(id);
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      queryClient.invalidateQueries(["notifications", "list"]);
     } catch (err) {
       console.error("Failed to mark as read:", err);
     }
@@ -70,7 +54,7 @@ export default function NotificationsPage() {
     setMarkingAll(true);
     try {
       await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      queryClient.invalidateQueries(["notifications", "list"]);
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     } finally {
@@ -85,14 +69,14 @@ export default function NotificationsPage() {
 
   return (
     <>
-<Box sx={{ minHeight: "100vh", background: "#f9f8f5", pt: 5, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+      <Box sx={{ minHeight: "100vh", background: "#f9f8f5", pt: 5, pb: 8, fontFamily: "'Inter', sans-serif" }}>
         <Container maxWidth="md">
           {/* Header */}
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2, mb: 4 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Badge 
-                badgeContent={unreadCount || null} 
-                sx={{ 
+              <Badge
+                badgeContent={unreadCount || null}
+                sx={{
                   "& .MuiBadge-badge": { bgcolor: "#ef4444", color: "white", fontWeight: 700 }
                 }}
               >
@@ -112,7 +96,7 @@ export default function NotificationsPage() {
 
             <Stack direction="row" spacing={1} alignItems="center">
               <Tooltip title="Refresh">
-                <IconButton onClick={() => fetchPage(page)} size="small" sx={{ color: TEXT_MID, "&:hover": { color: GOLD, bgcolor: GOLD_BG } }}>
+                <IconButton onClick={() => queryClient.invalidateQueries(["notifications", "list"])} size="small" sx={{ color: TEXT_MID, "&:hover": { color: GOLD, bgcolor: GOLD_BG } }}>
                   <RefreshIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -142,11 +126,12 @@ export default function NotificationsPage() {
                 <CircularProgress sx={{ color: GOLD }} />
               </Box>
             ) : notifications.length === 0 ? (
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 10, gap: 2 }}>
-                <NotificationsIcon sx={{ fontSize: 56, color: `${GOLD}40` }} />
-                <Typography sx={{ color: TEXT_DARK, fontWeight: 600 }}>You're all caught up!</Typography>
-                <Typography sx={{ color: TEXT_MID, fontSize: "0.85rem" }}>No notifications on this page.</Typography>
-              </Box>
+              <EmptyState
+                icon={NotificationsIcon}
+                title="You're all caught up!"
+                message="No notifications on this page."
+                minHeight="40vh"
+              />
             ) : (
               <>
                 <Box sx={{ px: 3, pt: 2.5, pb: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "#fafaf7" }}>

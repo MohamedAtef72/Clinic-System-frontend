@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { getDoctorAppointments } from '../../../services/appointmentService';
-import { getPatientById } from '../../../services/patientService';
-import { getDoctorAvailabilityById } from '../../../services/availabilityService';
-import { getVisitById, updateVisit } from '../../../services/visitService';
-import { getRateByAppointmentId } from '../../../services/ratingService';
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, CircularProgress, Alert, Pagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Rating, Stack, useTheme, useMediaQuery, Paper, Container, Grid, Drawer, IconButton } from "@mui/material";
+import { Box, Typography, CircularProgress, Alert, Pagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Rating, Stack, useTheme, useMediaQuery, Paper, Container, Grid, Drawer, IconButton, Skeleton } from "@mui/material";
+import { useDetailedDoctorAppointments, useUpdateAppointment } from "../../../features/appointments/hooks/useAppointments";
+import { useVisitDetails, useUpdateVisit } from "../../../features/appointments/hooks/useVisits";
 import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import { DoctorAppointmentCard } from "../components/DoctorAppointmentCard";
+import AppointmentCardSkeleton from "../../appointments/components/skeletons/AppointmentCardSkeleton";
 import AppointmentsFilterSection from "../../../components/AppointmentsFilterSection";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ViewRatingDialog from "../../../components/ViewRatingDialog";
@@ -16,10 +14,7 @@ import { updateAppointment } from '../../../services/appointmentService';
 
 import { GOLD, GOLD_BG, GOLD_DARK, GOLD_LIGHT, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function DoctorAppointmentsPage() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pageNumber, setPageNumber] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
 
   const { user } = useAuth();
@@ -29,51 +24,32 @@ export default function DoctorAppointmentsPage() {
 
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [visitDetails, setVisitDetails] = useState(null);
-  const [notesLoading, setNotesLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editNotes, setEditNotes] = useState("");
   const [editMedicine, setEditMedicine] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
   const [activeVisitId, setActiveVisitId] = useState(null);
   const [activeAppointmentId, setActiveAppointmentId] = useState(null);
   const [confirmCompleteOpen, setConfirmCompleteOpen] = useState(false);
   const [ratingAppointmentId, setRatingAppointmentId] = useState(null);
 
+  const { data: appointmentsRes, isLoading: loadingDocs, error } = useDetailedDoctorAppointments(user?.id, statusFilter, pageNumber);
+  const updateAppointmentMutation = useUpdateAppointment();
+  const updateVisitMutation = useUpdateVisit();
+
+  // Conditionally fetch visit details when notes dialog is open
+  const { data: visitDetailsData, isLoading: notesLoading } = useVisitDetails(activeVisitId, notesDialogOpen);
+
+  const appointments = appointmentsRes?.data || [];
+  const totalCount = appointmentsRes?.totalCount || 0;
+  const loading = loadingDocs;
+
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!user) return;
-      setLoading(true);
-      try {
-        const res = await getDoctorAppointments(statusFilter, user.id, pageNumber);
-        setTotalCount(res.totalCount || 0);
-        const detailedAppointments = await Promise.all(
-          (res.data || []).map(async (a) => {
-            try {
-              const [patientRes, availabilityRes] = await Promise.all([
-                getPatientById(a.patientId),
-                getDoctorAvailabilityById(a.availabilityId),
-              ]);
-              return {
-                ...a,
-                patientName: patientRes?.data?.userName || patientRes?.data?.UserName || "N/A",
-                patientCountry: patientRes?.data?.country || patientRes?.data?.Country || "N/A",
-                patientBloodType: patientRes?.data?.bloodType || patientRes?.data?.BloodType || "N/A",
-                startTime: availabilityRes?.Data?.StartTime ?? availabilityRes?.data?.startTime,
-              };
-            } catch (err) {
-              return { ...a, patientName: "Error" };
-            }
-          })
-        );
-        setAppointments(detailedAppointments);
-      } catch (error) {
-        console.error("Error fetching doctor appointments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAppointments();
-  }, [user, pageNumber, statusFilter]);
+    if (visitDetailsData) {
+      setVisitDetails(visitDetailsData);
+      setEditNotes(visitDetailsData.doctorNotes || "");
+      setEditMedicine(visitDetailsData.medicine || "");
+    }
+  }, [visitDetailsData]);
 
   const handlePageChange = (event, value) => setPageNumber(value);
   const handleApplyFilter = () => setPageNumber(1);
@@ -88,40 +64,21 @@ export default function DoctorAppointmentsPage() {
     setActiveAppointmentId(null);
   };
 
-  const handleShowNotes = async (visitId) => {
+  const handleShowNotes = (visitId) => {
     if (!visitId) return;
     setIsEditMode(false);
+    setActiveVisitId(visitId);
     setNotesDialogOpen(true);
-    setNotesLoading(true);
-    try {
-      const res = await getVisitById(visitId);
-      setVisitDetails(res.data || null);
-    } catch (error) {
-      setVisitDetails(null);
-    } finally {
-      setNotesLoading(false);
-    }
   };
 
-  const handleUpdateVisit = async (visitId) => {
+  const handleUpdateVisit = (visitId) => {
     if (!visitId) return;
     setIsEditMode(true);
+    setActiveVisitId(visitId);
     setNotesDialogOpen(true);
-    setNotesLoading(true);
-    try {
-      const res = await getVisitById(visitId);
-      setVisitDetails(res.data || null);
-      setEditNotes(res.data?.doctorNotes || "");
-      setEditMedicine(res.data?.medicine || "");
-    } catch (error) {
-      setVisitDetails(null);
-    } finally {
-      setNotesLoading(false);
-    }
   };
 
   const handleSaveVisitUpdate = async () => {
-    setIsUpdating(true);
     try {
       const newVisitData = {
         ...visitDetails,
@@ -129,7 +86,7 @@ export default function DoctorAppointmentsPage() {
         medicine: editMedicine,
         visitStatus: "Completed",
       };
-      await updateVisit(visitDetails.id, newVisitData);
+      await updateVisitMutation.mutateAsync({ id: visitDetails.id, data: newVisitData });
 
       if (activeAppointmentId) {
         setConfirmCompleteOpen(true);
@@ -138,37 +95,12 @@ export default function DoctorAppointmentsPage() {
       }
     } catch (error) {
       console.error("Failed to update visit details:", error);
-    } finally {
-      setIsUpdating(false);
     }
   };
 
   const handleConfirmFinalComplete = async () => {
     try {
-      setIsUpdating(true);
-      await updateAppointment(activeAppointmentId, { appointmentStatus: "Completed" });
-
-      // Refresh list
-      const res = await getDoctorAppointments(statusFilter, user.id, pageNumber);
-      setTotalCount(res.totalCount || 0);
-      const detailedAppointments = await Promise.all(
-        (res.data || []).map(async (a) => {
-          try {
-            const [patientRes, availabilityRes] = await Promise.all([
-              getPatientById(a.patientId),
-              getDoctorAvailabilityById(a.availabilityId),
-            ]);
-            return {
-              ...a,
-              patientName: patientRes?.data?.userName || "N/A",
-              patientCountry: patientRes?.data?.country || "N/A",
-              patientBloodType: patientRes?.data?.bloodType || "N/A",
-              startTime: availabilityRes?.Data?.StartTime ?? availabilityRes?.data?.startTime,
-            };
-          } catch (err) { return { ...a, patientName: "Error" }; }
-        })
-      );
-      setAppointments(detailedAppointments);
+      await updateAppointmentMutation.mutateAsync({ id: activeAppointmentId, data: { appointmentStatus: "Completed" } });
 
       setConfirmCompleteOpen(false);
       setNotesDialogOpen(false);
@@ -176,17 +108,13 @@ export default function DoctorAppointmentsPage() {
       setActiveVisitId(null);
     } catch (error) {
       console.error("Error completing appointment:", error);
-    } finally {
-      setIsUpdating(false);
     }
   };
 
   const handleShowRate = (appointmentId) => {
     setRatingAppointmentId(appointmentId);
   };
-  if (loading && appointments.length === 0) {
-    return (<Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh"><CircularProgress sx={{ color: GOLD }} /></Box>);
-  }
+  // Using skeleton instead of global loader
 
   const totalPages = Math.ceil(totalCount / 5);
 
@@ -214,7 +142,15 @@ export default function DoctorAppointmentsPage() {
 
               {/* Right Side: Appointments Grid */}
               <Grid item xs sx={{ minWidth: 0 }}>
-                {appointments.length === 0 && !loading ? (
+                {loading ? (
+                  <Grid container spacing={3} justifyContent="center">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Grid item key={i}>
+                        <AppointmentCardSkeleton />
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : appointments.length === 0 ? (
                   <Box sx={{ textAlign: "center", py: 8, borderRadius: 4, border: "1px dashed rgba(184,151,42,0.3)", bgcolor: GOLD_BG }}>
                     <CalendarMonthIcon sx={{ fontSize: 48, color: `${GOLD}66`, mb: 1.5 }} />
                     <Typography sx={{ color: TEXT_MID, fontWeight: 500 }}>You have no appointments scheduled.</Typography>
@@ -290,10 +226,10 @@ export default function DoctorAppointmentsPage() {
                 <Button
                   onClick={handleSaveVisitUpdate}
                   variant="contained"
-                  disabled={isUpdating}
+                  disabled={updateVisitMutation.isPending}
                   sx={{ bgcolor: GOLD, color: "white", borderRadius: 50, px: 3, "&:hover": { bgcolor: GOLD_DARK } }}
                 >
-                  {isUpdating ? <CircularProgress size={20} sx={{ color: "white" }} /> : "Save Changes"}
+                  {updateVisitMutation.isPending ? <CircularProgress size={20} sx={{ color: "white" }} /> : "Save Changes"}
                 </Button>
               )}
             </DialogActions>
@@ -312,11 +248,11 @@ export default function DoctorAppointmentsPage() {
               <Button onClick={() => setConfirmCompleteOpen(false)} sx={{ color: TEXT_MID, fontWeight: 600 }}>Cancel</Button>
               <Button
                 onClick={handleConfirmFinalComplete}
-                disabled={isUpdating}
+                disabled={updateAppointmentMutation.isPending}
                 variant="contained"
                 sx={{ bgcolor: "#22c55e", color: "white", borderRadius: 50, px: 3, "&:hover": { bgcolor: "#16a34a" } }}
               >
-                {isUpdating ? <CircularProgress size={20} sx={{ color: "white" }} /> : "Confirm"}
+                {updateAppointmentMutation.isPending ? <CircularProgress size={20} sx={{ color: "white" }} /> : "Confirm"}
               </Button>
             </DialogActions>
           </Dialog>

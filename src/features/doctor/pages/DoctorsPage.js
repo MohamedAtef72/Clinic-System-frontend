@@ -1,60 +1,39 @@
-import { Container, Grid, Typography, Pagination, CircularProgress, Box, Card, Select, MenuItem, Breadcrumbs, Link, FormControl, InputLabel, Divider, IconButton, Drawer } from "@mui/material";
+import { Container, Grid, Typography, Pagination, Box, Card, Select, MenuItem, Breadcrumbs, Link, FormControl, InputLabel, Divider, IconButton, Drawer, Skeleton } from "@mui/material";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import HomeIcon from '@mui/icons-material/Home';
 import { useState, useEffect } from "react";
 import DoctorCard from "../components/DoctorCard";
+import DoctorCardSkeleton from "../components/skeletons/DoctorCardSkeleton";
 import SearchBar from "../../../components/SearchBar";
-import { getAllDoctors } from '../../../services/doctorService';
-import { getAllSpecialities } from '../../../services/specialityService';
+import { useDoctorsList } from "../hooks/useDoctors";
+import { useAllSpecialities } from "../../speciality/hooks/useSpeciality";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import BookAppointmentPage from "../../appointments/pages/BookAppointmentPage";
 import UpdateDoctorPrice from "./UpdateDoctorPrice";
+import { usePageTitle } from "../../../hooks/usePageTitle";
 
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function DoctorsPage() {
+  usePageTitle("Find a Doctor");
   const [searchTerm, setSearchTerm] = useState("");
-  const [doctors, setDoctors] = useState([]);
-  const [specialities, setSpecialities] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pageNumber, setPageNumber] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-
   const [specialityFilter, setSpecialityFilter] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [bookingDoctorId, setBookingDoctorId] = useState(null);
   const [updatingPriceDoctorId, setUpdatingPriceDoctorId] = useState(null);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [docRes, specRes] = await Promise.all([
-        getAllDoctors(pageNumber, searchTerm, genderFilter, specialityFilter),
-        getAllSpecialities()
-      ]);
-      setDoctors(docRes.data || docRes.Data || []);
-      setTotalCount(docRes.totalCount || docRes.TotalCount || 0);
-      setPageSize(docRes.pageSize || docRes.PageSize || 10);
-      setSpecialities(specRes || []);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: docRes, isLoading: loadingDocs, refetch } = useDoctorsList(pageNumber, searchTerm, genderFilter, specialityFilter);
+  const { data: specialitiesData, isLoading: loadingSpecs } = useAllSpecialities();
+
+  const displayedDoctors = docRes?.data || docRes?.Data || [];
+  const totalCount = docRes?.totalCount || docRes?.TotalCount || 0;
+  const pageSize = docRes?.pageSize || docRes?.PageSize || 10;
+  const specialities = specialitiesData || [];
 
   useEffect(() => {
     setPageNumber(1);
   }, [searchTerm, specialityFilter, genderFilter]);
-
-  useEffect(() => {
-    fetchData();
-  }, [pageNumber, searchTerm, specialityFilter, genderFilter]);
-
-  // The API now handles searching, speciality, and gender filtering on the server
-  const displayedDoctors = doctors;
-
   const filterContent = (
     <Card elevation={0} sx={{ borderRadius: 4, border: `1px solid rgba(184,151,42,0.15)`, bgcolor: "#fff", p: 3, boxShadow: "0 8px 30px rgba(0,0,0,0.03)" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -74,9 +53,13 @@ export default function DoctorsPage() {
           sx={{ borderRadius: 3, "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: GOLD } }}
         >
           <MenuItem value=""><em>All Specialities</em></MenuItem>
-          {specialities.map((spec) => (
-            <MenuItem key={spec.id} value={spec.id}>{spec.name}</MenuItem>
-          ))}
+          {loadingSpecs ? (
+            <MenuItem disabled><em>Loading...</em></MenuItem>
+          ) : (
+            specialities.map((spec) => (
+              <MenuItem key={spec.id} value={spec.id}>{spec.name}</MenuItem>
+            ))
+          )}
         </Select>
       </FormControl>
 
@@ -141,25 +124,29 @@ export default function DoctorsPage() {
             <Grid container spacing={4} sx={{ flexWrap: { xs: "wrap", md: "nowrap" } }}>
 
               {/* Left Side: Filter (Hidden on mobile) */}
-              <Grid item sx={{ width: "300px", flexShrink: 0, display: { xs: "none", md: "block" } }}>
+              <Grid size={{ xs: 12, md: "auto" }} sx={{ width: { md: "300px" }, flexShrink: 0, display: { xs: "none", md: "block" } }}>
                 <Box sx={{ position: "sticky", top: 100 }}>
                   {filterContent}
                 </Box>
               </Grid>
 
               {/* Right Side: Doctors Grid OR Booking Phase */}
-              <Grid item xs sx={{ minWidth: 0 }}>
+              <Grid size="grow" sx={{ minWidth: 0 }}>
 
-                {loading ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-                    <CircularProgress sx={{ color: GOLD }} />
-                  </Box>
+                {loadingDocs ? (
+                  <Grid container spacing={3}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={i}>
+                        <DoctorCardSkeleton />
+                      </Grid>
+                    ))}
+                  </Grid>
                 ) : (
                   <>
                     <Grid container spacing={3}>
                       {displayedDoctors.length > 0 ? (
                         displayedDoctors.map((doctor) => (
-                          <Grid item xs={12} sm={6} lg={4} key={doctor.id}>
+                          <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={doctor.id}>
                             <DoctorCard
                               doctor={doctor}
                               onBook={setBookingDoctorId}
@@ -228,7 +215,7 @@ export default function DoctorsPage() {
             open={!!updatingPriceDoctorId}
             onClose={() => {
               setUpdatingPriceDoctorId(null);
-              fetchData();
+              refetch();
             }}
           />
         )}

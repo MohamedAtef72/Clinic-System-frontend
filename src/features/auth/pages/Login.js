@@ -72,40 +72,6 @@ export default function Login() {
 
   return (
     <>
-      <style>{`
-        @keyframes panelFadeIn {
-          from { opacity: 0; transform: translateX(-24px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes formFadeIn {
-          from { opacity: 0; transform: translateX(24px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes floatY {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-8px); }
-        }
-        @keyframes shimmerGold {
-          0%,100% { background-position: 0% 50%; }
-          50%      { background-position: 100% 50%; }
-        }
-        @keyframes spinnerFade {
-          from { opacity: 0; transform: scale(0.8); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-
-        /* gold focus ring on MUI inputs */
-        .gold-input .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
-          border-color: ${GOLD} !important;
-        }
-        .gold-input .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-          border-color: ${GOLD} !important;
-          border-width: 2px !important;
-        }
-        .gold-input .MuiInputLabel-root.Mui-focused {
-          color: ${GOLD} !important;
-        }
-      `}</style>
 
       {/*
         ═══════════════════════════════════════════

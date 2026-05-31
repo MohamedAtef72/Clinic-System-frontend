@@ -1,53 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Grid, Typography, Alert, Box, Paper, Fade, Button } from '@mui/material';
-import { getDashboardStats, getRecentData } from '../../../services/adminService';
-import { getAllAppointments } from '../../../services/appointmentService';
+import { Container, Grid, Typography, Alert, Box, Paper, Fade, Button, Skeleton } from '@mui/material';
 import DashboardStatsGrid from '../components/DashboardStatsGrid';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import DashboardAppointmentItem from '../components/DashboardAppointmentItem';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { useDashboardStats, useRecentData } from '../hooks/useDashboard';
+import { useAllAppointments } from '../../appointments/hooks/useAppointments';
 
 import { GOLD, GOLD_BG, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
+
 function DashboardPage() {
+  usePageTitle("Admin Dashboard");
   const navigate = useNavigate();
-  const [recentAppointments, setRecentAppointments] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [recentData, setRecentData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
 
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data: stats, isLoading: loadingStats, error: statsError } = useDashboardStats();
+  const { data: recentData, isLoading: loadingRecent, error: recentError } = useRecentData();
+  const { data: recentAppointmentsRes, isLoading: loadingAppointments, error: appointmentsError } = useAllAppointments("", page);
 
-      const [statsResponse, recentResponse, recentAppointmentsResponse] = await Promise.all([
-        getDashboardStats(),
-        getRecentData(),
-        getAllAppointments("", page)
-      ]);
-
-      setStats(statsResponse?.data || statsResponse);
-      setRecentData(recentResponse?.data || recentResponse);
-      setRecentAppointments(recentAppointmentsResponse?.data || recentAppointmentsResponse);
-
-    } catch (err) {
-      console.error("Dashboard data fetch error:", err);
-      setError(err.message || "Failed to fetch dashboard data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    fetchDashboardData();
-
-    const interval = setInterval(fetchDashboardData, 30000);
-    return () => clearInterval(interval);
-  }, [fetchDashboardData]);
+  const error = statsError?.message || recentError?.message || appointmentsError?.message || null;
+  const recentAppointments = recentAppointmentsRes?.data || recentAppointmentsRes || [];
 
 
   const handleShowDoctors = () => navigate('/doctors');
@@ -134,7 +109,7 @@ function DashboardPage() {
               {/* Stats Grid */}
               <DashboardStatsGrid
                 stats={stats}
-                loading={loading}
+                loading={loadingStats}
                 onShowDoctors={handleShowDoctors}
                 onShowPatients={handleShowPatients}
                 onShowAppointments={handleShowAppointments}
@@ -211,7 +186,7 @@ function DashboardPage() {
                               lineHeight: 1.2
                             }}
                           >
-                            {loading ? '...' : item.value}
+                            {loadingRecent ? <Skeleton animation="wave" width={60} height={40} /> : item.value}
                           </Typography>
                           <Typography variant="caption" sx={{ color: TEXT_MID, opacity: 0.8 }}>
                             {item.desc}
@@ -261,9 +236,9 @@ function DashboardPage() {
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
-                {loading && !recentAppointments.length ? (
+                {loadingAppointments && !recentAppointments.length ? (
                   [1, 2, 3, 4, 5].map(i => (
-                    <Box key={i} sx={{ height: 85, bgcolor: '#f3f4f6', borderRadius: 3, animation: 'pulse 1.5s infinite ease-in-out', opacity: 0.6 }} />
+                    <Skeleton key={i} animation="wave" variant="rectangular" height={85} sx={{ borderRadius: 3 }} />
                   ))
                 ) : recentAppointments.length > 0 ? (
                   recentAppointments.slice(0, 6).map(appt => (

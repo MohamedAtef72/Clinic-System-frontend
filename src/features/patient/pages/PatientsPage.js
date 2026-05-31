@@ -1,48 +1,29 @@
-import { Container, Grid, Typography, Pagination, CircularProgress, Box, Card, Breadcrumbs, Link, FormControl, InputLabel, Select, MenuItem, Divider, IconButton, Drawer } from "@mui/material";
+import { Container, Grid, Typography, Pagination, Box, Card, Breadcrumbs, Link, FormControl, InputLabel, Select, MenuItem, Divider, IconButton, Drawer, Skeleton } from "@mui/material";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import HomeIcon from '@mui/icons-material/Home';
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useState, useEffect } from "react";
 import PatientCard from "../components/PatientCard";
+import PatientCardSkeleton from "../components/skeletons/PatientCardSkeleton";
 import SearchBar from "../../../components/SearchBar";
-import { getAllPatients } from '../../../services/patientService';
+import { usePatientsList } from "../hooks/usePatients";
 
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function PatientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pageNumber, setPageNumber] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-
   const [genderFilter, setGenderFilter] = useState("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await getAllPatients(pageNumber, searchTerm, genderFilter);
-      setPatients(res.data || res.Data || []);
-      setTotalCount(res.totalCount || res.TotalCount || 0);
-      setPageSize(res.pageSize || res.PageSize || 10);
-    } catch (err) {
-      console.error("Error fetching patients:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: patientsData, isLoading: loading } = usePatientsList(pageNumber, searchTerm, genderFilter);
+
+  const displayedPatients = patientsData?.data || patientsData?.Data || [];
+  const totalCount = patientsData?.totalCount || patientsData?.TotalCount || 0;
+  const pageSize = patientsData?.pageSize || patientsData?.PageSize || 10;
 
   useEffect(() => {
     setPageNumber(1);
   }, [searchTerm, genderFilter]);
-
-  useEffect(() => {
-    fetchData();
-  }, [pageNumber, searchTerm, genderFilter]);
-
-  // The API now handles searching and gender filtering on the server
-  const displayedPatients = patients;
 
   const filterContent = (
     <Card elevation={0} sx={{ borderRadius: 4, border: `1px solid rgba(184,151,42,0.15)`, bgcolor: "#fff", p: 3, boxShadow: "0 8px 30px rgba(0,0,0,0.03)" }}>
@@ -134,9 +115,13 @@ export default function PatientsPage() {
               {/* Right Side: Patients Grid */}
               <Grid item xs sx={{ minWidth: 0 }}>
                 {loading ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-                    <CircularProgress sx={{ color: GOLD }} />
-                  </Box>
+                  <Grid container spacing={3}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Grid item xs={12} sm={6} lg={4} key={i}>
+                        <PatientCardSkeleton />
+                      </Grid>
+                    ))}
+                  </Grid>
                 ) : (
                   <>
                     <Grid container spacing={3}>

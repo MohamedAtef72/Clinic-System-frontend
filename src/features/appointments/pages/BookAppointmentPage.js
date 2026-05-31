@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getDoctorById } from '../../../services/doctorService';
 import { getDoctorAvailabilities } from '../../../services/availabilityService';
 import { createAppointment } from '../../../services/appointmentService';

@@ -1,24 +1,36 @@
 import { useAuth } from "../contexts/AuthContext";
-import { Navigate } from 'react-router-dom';
-import CircularProgress from '@mui/material/CircularProgress';
-import Box from '@mui/material/Box';
+import { Navigate } from "react-router-dom";
+import FullPageSpinner from "./FullPageSpinner";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+/**
+ * Protects a route behind authentication and optional role-based access.
+ *
+ * @param {React.ReactNode} children  - The component to render when access is granted.
+ * @param {string[]}        [roles]   - Optional whitelist of allowed roles (e.g. ["Admin"]).
+ *                                     When omitted any authenticated user may access the route.
+ *
+ * @example
+ * // Admin-only route
+ * <ProtectedRoute roles={["Admin"]}><DashboardPage /></ProtectedRoute>
+ *
+ * // Any authenticated user
+ * <ProtectedRoute><ProfilePage /></ProtectedRoute>
+ */
+const ProtectedRoute = ({ children, roles }) => {
+  const { isAuthenticated, loading, user } = useAuth();
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // Wait for the auth check to complete before deciding
+  if (loading) return <FullPageSpinner />;
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // Not logged in → send to login
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  // Logged in but doesn't have the required role → send home
+  if (roles && roles.length > 0 && !roles.includes(user?.role)) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
 };
 
-export default ProtectedRoute;
+export default ProtectedRoute;

@@ -38,13 +38,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function that clears state after logout
-  const logout = async (data) => {
+  // Logout function that clears state directly (no extra /Auth/Me round-trip)
+  const logout = async () => {
     try {
-      await apiLogout(data);
-      await refreshAuth();
+      await apiLogout();
     } catch (err) {
-      throw err;
+      // Swallow errors — still clear local state so the UI resets
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
     }
   };
 

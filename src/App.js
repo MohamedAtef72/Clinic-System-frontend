@@ -1,196 +1,220 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// public 
+// Infrastructure
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
+import FullPageSpinner from "./components/FullPageSpinner";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import Navbar from "./components/Navbar";
 
+// ─── Lazy-loaded pages ───────────────────────────────────────────────────────
+// Each page is code-split into its own JS chunk.
+// Unvisited pages are never downloaded until the user navigates to them.
+
 // auth
-import Login from "./features/auth/pages/Login";
-import ForgotPassword from "./features/auth/pages/ForgotPasswordPage";
-import ResetPassword from "./features/auth/pages/ResetPasswordPage";
+const Login = lazy(() => import("./features/auth/pages/Login"));
+const ForgotPassword = lazy(() => import("./features/auth/pages/ForgotPasswordPage"));
+const ResetPassword = lazy(() => import("./features/auth/pages/ResetPasswordPage"));
+
+// home / 404
+const Home = lazy(() => import("./features/home/pages/Home"));
+const NotFoundPage = lazy(() => import("./features/home/pages/NotFoundPage"));
 
 // doctor
-import DoctorRegister from "./features/doctor/pages/DoctorRegister";
-import DoctorsPage from "./features/doctor/pages/DoctorsPage";
-import ViewDoctorProfile from "./features/doctor/pages/ViewDoctorProfile";
-import DoctorSchedulePage from "./features/doctor/pages/DoctorSchedulePage";
-import DoctorAppointmentsPage from "./features/doctor/pages/DoctorAppointmentsPage";
-import DoctorVisitPage from "./features/doctor/pages/DoctorVisitPage";
-import UpdateDoctorPrice from "./features/doctor/pages/UpdateDoctorPrice";
+const DoctorRegister = lazy(() => import("./features/doctor/pages/DoctorRegister"));
+const DoctorsPage = lazy(() => import("./features/doctor/pages/DoctorsPage"));
+const ViewDoctorProfile = lazy(() => import("./features/doctor/pages/ViewDoctorProfile"));
+const DoctorSchedulePage = lazy(() => import("./features/doctor/pages/DoctorSchedulePage"));
+const DoctorAppointmentsPage = lazy(() => import("./features/doctor/pages/DoctorAppointmentsPage"));
+const DoctorVisitPage = lazy(() => import("./features/doctor/pages/DoctorVisitPage"));
+const UpdateDoctorPrice = lazy(() => import("./features/doctor/pages/UpdateDoctorPrice"));
 
 // patient
-import PatientRegister from "./features/patient/pages/PatientRegister";
-import PatientAppointmentsPage from "./features/patient/pages/PatientAppointmentsPage";
-import ViewPatientProfile from "./features/patient/pages/ViewPatientProfile";
-import PatientsPage from "./features/patient/pages/PatientsPage";
+const PatientRegister = lazy(() => import("./features/patient/pages/PatientRegister"));
+const PatientAppointmentsPage = lazy(() => import("./features/patient/pages/PatientAppointmentsPage"));
+const ViewPatientProfile = lazy(() => import("./features/patient/pages/ViewPatientProfile"));
+const PatientsPage = lazy(() => import("./features/patient/pages/PatientsPage"));
 
 // receptionist
-import ReceptionistRegister from "./features/receptionist/pages/Receptionistregister";
-import ReceptionistAppointmentsPage from "./features/receptionist/pages/ReceptionistAppointmentPage";
-
-// home
-import Home from "./features/home/pages/Home";
+const ReceptionistRegister = lazy(() => import("./features/receptionist/pages/Receptionistregister"));
+const ReceptionistAppointmentsPage = lazy(() => import("./features/receptionist/pages/ReceptionistAppointmentPage"));
 
 // dashboard
-import DashboardPage from "./features/dashboard/pages/DashboardPage";
+const DashboardPage = lazy(() => import("./features/dashboard/pages/DashboardPage"));
 
 // profile
-import Profile from "./features/profile/pages/Profile";
-import EditProfile from "./features/profile/pages/EditProfile";
+const Profile = lazy(() => import("./features/profile/pages/Profile"));
+const EditProfile = lazy(() => import("./features/profile/pages/EditProfile"));
 
 // appointments
-import BookAppointmentPage from "./features/appointments/pages/BookAppointmentPage";
-import AllAppointmentsPage from "./features/appointments/pages/AllAppointmentsPage";
+const BookAppointmentPage = lazy(() => import("./features/appointments/pages/BookAppointmentPage"));
+const AllAppointmentsPage = lazy(() => import("./features/appointments/pages/AllAppointmentsPage"));
 
 // speciality
-import { AddSpeciality } from "./features/speciality/components";
+const AddSpeciality = lazy(() =>
+  import("./features/speciality/components").then((m) => ({ default: m.AddSpeciality }))
+);
 
-// notification
-import { NotificationProvider } from './contexts/NotificationContext';
-import NotificationsPage from './features/notifications/pages/NotificationsPage';
+// notifications
+const NotificationsPage = lazy(() => import("./features/notifications/pages/NotificationsPage"));
 
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <div className="App">
+    <ErrorBoundary>
       <AuthProvider>
-      <NotificationProvider>
-      <Navbar />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword/>}/>
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/patient-register" element={<PatientRegister />} />
-        
-        {/* Protected Routes */}
-        {/* doctor */}
-        <Route path="/doctor-register" element={
-          <ProtectedRoute>
-            <DoctorRegister />
-          </ProtectedRoute>
-        } />
+        <NotificationProvider>
+          <QueryClientProvider client={queryClient}>
+            <div className="App">
+              <Navbar />
+              {/*
+              Suspense wraps ALL routes.
+              FullPageSpinner is shown while any lazy page chunk is loading.
+            */}
+              <Suspense fallback={<FullPageSpinner />}>
+                <Routes>
 
-        <Route path="/doctors" element={
-          <ProtectedRoute>
-            <DoctorsPage />
-          </ProtectedRoute>
-        } />
+                  {/* ── Public Routes ── */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/patient-register" element={<PatientRegister />} />
 
-        <Route path="/doctor/:id" element={
-          <ProtectedRoute>
-            <ViewDoctorProfile />
-          </ProtectedRoute>
-        } />    
+                  {/* ── Doctor Routes ── */}
+                  <Route path="/doctors" element={
+                    <ProtectedRoute>
+                      <DoctorsPage />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/doctor-schedule" element={
-          <ProtectedRoute>
-            <DoctorSchedulePage />
-          </ProtectedRoute>
-        } />
+                  <Route path="/doctor/:id" element={
+                    <ProtectedRoute>
+                      <ViewDoctorProfile />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/doctor-appointments" element={
-          <ProtectedRoute>
-            <DoctorAppointmentsPage />
-          </ProtectedRoute>
-        } />
+                  <Route path="/doctor-schedule" element={
+                    <ProtectedRoute roles={["Doctor"]}>
+                      <DoctorSchedulePage />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/update-doctor-price/:id" element={
-          <ProtectedRoute>
-            <UpdateDoctorPrice />
-          </ProtectedRoute>
-        } />
+                  <Route path="/doctor-appointments" element={
+                    <ProtectedRoute roles={["Doctor"]}>
+                      <DoctorAppointmentsPage />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/doctor/visit/:id" element={
-          <ProtectedRoute>
-            <DoctorVisitPage />
-          </ProtectedRoute>
-        } />      
+                  <Route path="/doctor/visit/:id" element={
+                    <ProtectedRoute roles={["Doctor"]}>
+                      <DoctorVisitPage />
+                    </ProtectedRoute>
+                  } />
 
-        {/* patient */}
-          <Route path="/patient/:id" element={
-          <ProtectedRoute>
-            <ViewPatientProfile />
-          </ProtectedRoute>
-        } />      
+                  {/* ── Patient Routes ── */}
+                  <Route path="/patient/:id" element={
+                    <ProtectedRoute>
+                      <ViewPatientProfile />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/patient-appointments" element={
-          <ProtectedRoute>
-            <PatientAppointmentsPage />
-          </ProtectedRoute>
-        } />
+                  <Route path="/patient-appointments" element={
+                    <ProtectedRoute roles={["Patient"]}>
+                      <PatientAppointmentsPage />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/patients" element={
-          <ProtectedRoute>
-            <PatientsPage />
-          </ProtectedRoute>
-        } />
+                  {/* ── Admin-only Routes ── */}
+                  <Route path="/admin/dash" element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  } />
 
-        {/* receptionist */}
-        <Route path="/receptionist-register" element={
-          <ProtectedRoute>
-            <ReceptionistRegister />
-          </ProtectedRoute>
-        } />
+                  <Route path="/doctor-register" element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <DoctorRegister />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/Receptionist/all-appointments" element={
-          <ProtectedRoute>
-            <ReceptionistAppointmentsPage />
-          </ProtectedRoute>
-        } />
+                  <Route path="/receptionist-register" element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <ReceptionistRegister />
+                    </ProtectedRoute>
+                  } />
 
-        {/* dashboard */}
-          <Route path="/admin/dash" element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } />
+                  <Route path="/all-appointments" element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <AllAppointmentsPage />
+                    </ProtectedRoute>
+                  } />
 
-        {/* profile */}
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
+                  <Route path="/add-speciality" element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <AddSpeciality />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/edit-profile" element={
-          <ProtectedRoute>
-            <EditProfile />
-          </ProtectedRoute>
-        } />  
+                  <Route path="/patients" element={
+                    <ProtectedRoute roles={["Admin", "Receptionist"]}>
+                      <PatientsPage />
+                    </ProtectedRoute>
+                  } />
 
-        {/* appointments */}
-        <Route path="/book-appointment/:doctorId" element={
-          <ProtectedRoute>
-            <BookAppointmentPage />
-          </ProtectedRoute>
-        } />
+                  <Route path="/update-doctor-price/:id" element={
+                    <ProtectedRoute roles={["Admin"]}>
+                      <UpdateDoctorPrice />
+                    </ProtectedRoute>
+                  } />
 
-        <Route path="/all-appointments" element={
-          <ProtectedRoute>
-            <AllAppointmentsPage />
-          </ProtectedRoute>
-        } />
+                  {/* ── Receptionist Routes ── */}
+                  <Route path="/Receptionist/all-appointments" element={
+                    <ProtectedRoute roles={["Receptionist", "Admin"]}>
+                      <ReceptionistAppointmentsPage />
+                    </ProtectedRoute>
+                  } />
 
-        {/* notifications */}
-        <Route path="/notifications" element={
-          <ProtectedRoute>
-            <NotificationsPage />
-          </ProtectedRoute>
-        } />
+                  {/* ── Shared Authenticated Routes ── */}
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
 
-        {/* speciality */}
-        <Route path="/add-speciality" element={
-          <ProtectedRoute>
-            <AddSpeciality />
-          </ProtectedRoute>
-        } />
-      </Routes>
-      </NotificationProvider>
+                  <Route path="/edit-profile" element={
+                    <ProtectedRoute>
+                      <EditProfile />
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/book-appointment/:doctorId" element={
+                    <ProtectedRoute roles={["Patient"]}>
+                      <BookAppointmentPage />
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/notifications" element={
+                    <ProtectedRoute>
+                      <NotificationsPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ── 404 Catch-All ── */}
+                  <Route path="*" element={<NotFoundPage />} />
+
+                </Routes>
+              </Suspense>
+            </div>
+          </QueryClientProvider>
+        </NotificationProvider>
       </AuthProvider>
-    </div>
+    </ErrorBoundary>
   );
 }
 

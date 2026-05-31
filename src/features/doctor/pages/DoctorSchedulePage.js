@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Container, Typography, Button, TextField, Box, Dialog, DialogTitle, DialogContent, DialogActions,
-  MenuItem, Stack, Card, CardContent, Chip, Grid, IconButton, Tooltip, Paper, Tab, Tabs, CircularProgress,
+  MenuItem, Stack, Card, CardContent, Chip, Grid, IconButton, Tooltip, Paper, Tab, Tabs, Skeleton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -10,17 +10,20 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { getDoctorAvailabilities, addAvailability, updateAvailability, deleteAvailability } from '../../../services/availabilityService';
 import { useAuth } from "../../../contexts/AuthContext";
+import { useDoctorSchedule, useAddSchedule, useUpdateSchedule, useDeleteSchedule } from "../hooks/useSchedule";
 
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function DoctorSchedulePage() {
   const { user } = useAuth();
-  const [availabilities, setAvailabilities] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [groupedByDay, setGroupedByDay] = useState({});
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const { data: rawAvailabilities, isLoading: loading } = useDoctorSchedule(user?.id);
+  const addScheduleMutation = useAddSchedule();
+  const updateScheduleMutation = useUpdateSchedule();
+  const deleteScheduleMutation = useDeleteSchedule();
 
   const normalizeAvailabilities = (data) => {
     return (data || []).map(a => ({
@@ -31,6 +34,8 @@ export default function DoctorSchedulePage() {
       doctorId: a.doctorId || a.DoctorId
     }));
   };
+  
+  const availabilities = normalizeAvailabilities(rawAvailabilities);
 
   const [day, setDay] = useState("");
   const [slots, setSlots] = useState([]);
@@ -43,20 +48,6 @@ export default function DoctorSchedulePage() {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const fetchAvailabilities = async () => {
-      try {
-        const res = await getDoctorAvailabilities(user.id);
-        setAvailabilities(normalizeAvailabilities(res.Data || res.data));
-      } catch (err) {
-        console.error("Error loading availabilities:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAvailabilities();
-  }, [user.id]);
 
   useEffect(() => {
     const grouped = {};
@@ -98,9 +89,7 @@ export default function DoctorSchedulePage() {
         isBooked: false, recurrencePattern, recurrenceEndDate: recurrencePattern !== "None" ? recurrenceEndDate : null,
       }));
 
-      for (const slot of newSlots) await addAvailability(slot);
-      const updated = await getDoctorAvailabilities(user.id);
-      setAvailabilities(normalizeAvailabilities(updated.Data || updated.data));
+      for (const slot of newSlots) await addScheduleMutation.mutateAsync(slot);
 
       setSlots([]); setDay(""); setRecurrencePattern("None"); setRecurrenceEndDate(""); setOpenDialog(false);
     } catch (err) {
@@ -112,8 +101,7 @@ export default function DoctorSchedulePage() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteAvailability(id);
-      setAvailabilities(availabilities.filter((a) => a.id !== id));
+      await deleteScheduleMutation.mutateAsync(id);
     } catch (err) { console.error(err); }
   };
 
@@ -122,9 +110,7 @@ export default function DoctorSchedulePage() {
   const handleSaveEdit = async () => {
     try {
       if (editingSlot.startTime >= editingSlot.endTime) return alert("End time must be after start time");
-      await updateAvailability(editingSlot.id, editingSlot);
-      const res = await getDoctorAvailabilities(user.id);
-      setAvailabilities(normalizeAvailabilities(res.Data || res.data));
+      await updateScheduleMutation.mutateAsync({ id: editingSlot.id, data: editingSlot });
       setOpenEditDialog(false); setEditingSlot(null);
     } catch (err) { console.error(err); }
   };
@@ -136,7 +122,7 @@ export default function DoctorSchedulePage() {
     "& .MuiInputLabel-root.Mui-focused": { color: GOLD_DARK },
   };
 
-  if (loading) return <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}><CircularProgress sx={{ color: GOLD }} /></Box>;
+  // Skeleton loader removed from top level so the layout doesn't jump
 
   return (
     <>
@@ -175,7 +161,15 @@ export default function DoctorSchedulePage() {
                 <IconButton onClick={handleNextMonth} sx={{ bgcolor: "#fff", border: `1px solid ${GOLD}40`, "&:hover": { bgcolor: GOLD_BG } }}><ChevronRightIcon sx={{ fontSize: 20, color: GOLD_DARK }} /></IconButton>
               </Box>
 
-              {filteredDays.length > 0 ? (
+              {loading ? (
+                <Grid container spacing={3}>
+                  {[1, 2, 3, 4].map((i) => (
+                    <Grid item xs={12} md={6} key={i}>
+                      <Skeleton animation="wave" variant="rectangular" height={220} sx={{ borderRadius: 4 }} />
+                    </Grid>
+                  ))}
+                </Grid>
+              ) : filteredDays.length > 0 ? (
                 <Grid container spacing={3}>
                   {filteredDays.map((day) => (
                     <Grid item xs={12} md={6} key={day}>
