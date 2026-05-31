@@ -129,8 +129,6 @@ export const NotificationProvider = ({ children }) => {
         connection
             .start()
             .then(() => {
-                console.log('Connected to SignalR!');
-
                 connection.on('ReceiveNotification', (data) => {
                     const incoming = normalize({
                         ...data,

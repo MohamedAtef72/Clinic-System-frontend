@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "MedClinic",
+  "name": "MedClinic — Professional Healthcare",
+  "description": "Book doctor appointments, manage your health records, and connect with top specialists.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +9,19 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "clinic-icon-v2.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "clinic-icon-v2.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#b8972a",
+  "background_color": "#f9f8f5",
+  "orientation": "portrait-primary"
 }

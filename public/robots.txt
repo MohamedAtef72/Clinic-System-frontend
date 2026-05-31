@@ -1,3 +1,15 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+# Block private / admin routes
+Disallow: /admin/
+Disallow: /edit-profile
+Disallow: /doctor-register
+Disallow: /receptionist-register
+Disallow: /patient-register
+Disallow: /notifications
+
+# Allow public-facing pages
+Allow: /
+Allow: /login
+Allow: /doctors
+Allow: /forgot-password

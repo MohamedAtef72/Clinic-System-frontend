@@ -1,91 +1,39 @@
-import React, { useEffect, useState } from "react";
-import { getAllAppointments } from '../../../services/appointmentService';
-import { getDoctorById } from '../../../services/doctorService';
-import { getPatientById } from '../../../services/patientService';
-import { getDoctorAvailabilityById } from '../../../services/availabilityService';
+import React, { useState } from "react";
 import {
   Box, Typography, CircularProgress, Pagination,
-  Grid, Container, useTheme, useMediaQuery
+  Grid, Container, useTheme, useMediaQuery, Skeleton
 } from "@mui/material";
+import { useDetailedAllAppointments } from "../hooks/useAppointments";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import { AppointmentReviewCard } from "../components/MobileAppointmentReviewCard";
+import AppointmentReviewCardSkeleton from "../components/skeletons/AppointmentReviewCardSkeleton";
 import AppointmentsFilterSection from "../../../components/AppointmentsFilterSection";
 import ViewRatingDialog from "../../../components/ViewRatingDialog";
 
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_MID } from "../../../theme/tokens";
 /* ── Tokens ── */
 export default function AllAppointmentsPage() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
   const [statusFilter, setStatusFilter] = useState("");
 
   const theme = useTheme();
   const isTabletOrMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [ratingAppointmentId, setRatingAppointmentId] = useState(null);
 
-  const fetchAppointments = async () => {
-    setLoading(true);
-    try {
-      const res = await getAllAppointments(statusFilter, page);
-      const appointmentsData = res.data || res.Data || [];
-      setTotalCount(res.totalCount || res.TotalCount || 0);
-      setPageSize(res.pageSize || res.PageSize || 5);
+  const { data: appointmentsRes, isLoading: loadingDocs } = useDetailedAllAppointments(statusFilter, page);
 
-      const detailed = await Promise.all(
-        appointmentsData.map(async (a) => {
-          try {
-            const [doctorRes, patientRes, availabilityRes] = await Promise.all([
-              getDoctorById(a.doctorId),
-              getPatientById(a.patientId),
-              getDoctorAvailabilityById(a.availabilityId),
-            ]);
-            const doctorData = doctorRes?.data || doctorRes;
-            const patientData = patientRes?.data || patientRes;
-            const availabilityData = availabilityRes?.Data ?? availabilityRes?.data ?? {};
-
-            return {
-              ...a,
-              id: a.id || a.Id,
-              doctorName: doctorData?.userName || doctorData?.UserName || "N/A",
-              patientName: patientData?.userName || patientData?.UserName || "N/A",
-              patientCountry: patientData?.country || patientData?.Country || "N/A",
-              doctorCountry: doctorData?.country || doctorData?.Country || "N/A",
-              startTime: availabilityData?.StartTime ?? availabilityData?.startTime,
-              endTime: availabilityData?.EndTime ?? availabilityData?.endTime,
-            };
-          } catch (err) {
-            return { ...a, doctorName: "Error", patientName: "Error" };
-          }
-        })
-      );
-      setAppointments(detailed);
-    } catch (err) {
-      console.error("Error fetching appointments:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [page, statusFilter]);
+  const appointments = appointmentsRes?.data || [];
+  const totalCount = appointmentsRes?.totalCount || 0;
+  const pageSize = appointmentsRes?.pageSize || 5;
+  const loading = loadingDocs;
 
   const handleApplyFilter = () => setPage(1);
   const handleShowRate = (appointmentId) => setRatingAppointmentId(appointmentId);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  if (loading && !appointments.length) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress sx={{ color: GOLD }} />
-      </Box>
-    );
-  }
+  // Using skeletons instead of global loader
 
   return (
     <>
@@ -111,7 +59,15 @@ export default function AllAppointmentsPage() {
 
               {/* Right Side: Appointments Grid */}
               <Grid item xs sx={{ minWidth: 0 }}>
-                {appointments.length === 0 && !loading ? (
+                {loading ? (
+                  <Grid container spacing={3}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Grid item xs={12} sm={6} lg={4} xl={4} key={i}>
+                        <AppointmentReviewCardSkeleton />
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : appointments.length === 0 ? (
                   <Box sx={{ textAlign: "center", py: 8, borderRadius: 4, border: "1px dashed rgba(184,151,42,0.3)", bgcolor: GOLD_BG }}>
                     <CalendarMonthIcon sx={{ fontSize: 48, color: `${GOLD}66`, mb: 1.5 }} />
                     <Typography sx={{ color: TEXT_MID, fontWeight: 500 }}>No appointments found.</Typography>

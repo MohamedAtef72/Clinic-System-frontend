@@ -12,12 +12,11 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../contexts/NotificationContext";
-import { userProfile } from '../services/userService';
 
 import { GOLD, GOLD_DARK, GOLD_LIGHT, NAV_BG, NAV_BG_SCROLLED, TEXT_DARK, TEXT_MID } from "../theme/tokens";
 
 export default function Navbar() {
-  const [userData, setUserData] = useState(null);
+  // H6: use user data already available in AuthContext — no extra API call needed
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
@@ -36,22 +35,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (isAuthenticated) {
-        try {
-          const res = await userProfile();
-          setUserData(res.user);
-        } catch (err) {
-          console.error("Failed to fetch profile:", err);
-        }
-      } else {
-        setUserData(null);
-      }
-    };
-    fetchProfile();
-  }, [isAuthenticated]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -135,11 +118,6 @@ export default function Navbar() {
 
   return (
     <>
-      <style>{`
-        @keyframes navIn { from { transform:translateY(-100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
-        @keyframes badgeBeat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
-        @keyframes searchSlide { from{opacity:0;transform:scaleX(0)} to{opacity:1;transform:scaleX(1)} }
-      `}</style>
 
       {/* ── fixed spacer ── */}
       <Box sx={{ height: { xs: 64, md: 72 } }} />
@@ -264,6 +242,7 @@ export default function Navbar() {
             {isAuthenticated && (
               <IconButton
                 onClick={(e) => { setNotifAnchorEl(null); refreshNotifications(); setNotifAnchorEl(e.currentTarget); }}
+                aria-label="Open notifications"
                 sx={{
                   color: TEXT_MID,
                   "&:hover": { color: GOLD, bgcolor: GOLD_LIGHT },
@@ -299,10 +278,10 @@ export default function Navbar() {
                       fontSize: "0.7rem", fontWeight: 700,
                     }}
                   >
-                    {userData?.userName?.[0]?.toUpperCase() || user?.role?.[0]?.toUpperCase() || "U"}
+          {user?.userName?.[0]?.toUpperCase() || user?.role?.[0]?.toUpperCase() || "U"}
                   </Avatar>
                 }
-                label={userData?.userName?.split(" ")[0] || user?.role}
+                label={user?.userName?.split(" ")[0] || user?.role}
                 onClick={(e) => setAnchorEl(e.currentTarget)}
                 sx={{
                   background: GOLD_LIGHT,
@@ -393,6 +372,7 @@ export default function Navbar() {
             {(isMobile) && (
               <IconButton
                 onClick={(e) => setAnchorEl(e.currentTarget)}
+                aria-label="Open navigation menu"
                 sx={{
                   color: TEXT_MID,
                   border: `1px solid rgba(184,151,42,0.25)`,
@@ -439,7 +419,14 @@ export default function Navbar() {
                 placeholder="Search doctors, specialties, services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && searchQuery.trim()) {
+                    navigate(`/doctors?search=${encodeURIComponent(searchQuery.trim())}`);
+                    setSearchOpen(false);
+                    setSearchQuery("");
+                  }
+                  if (e.key === "Escape") setSearchOpen(false);
+                }}
                 sx={{
                   flex: 1,
                   fontSize: "0.9rem",
@@ -605,11 +592,11 @@ export default function Navbar() {
                 boxShadow: `0 4px 12px ${GOLD}44`,
               }}
             >
-              {userData?.userName?.[0]?.toUpperCase() || user?.role?.[0]?.toUpperCase() || "U"}
+              {user?.userName?.[0]?.toUpperCase() || user?.role?.[0]?.toUpperCase() || "U"}
             </Avatar>
             <Box>
               <Typography fontWeight={700} fontSize="0.9rem" color={TEXT_DARK} lineHeight={1.2}>
-                {userData?.userName || "User"}
+                {user?.userName || "User"}
               </Typography>
               <Typography fontSize="0.72rem" color={GOLD} fontWeight={600}>
                 {user?.role}

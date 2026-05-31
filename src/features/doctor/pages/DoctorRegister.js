@@ -102,6 +102,13 @@ const HIGHLIGHTS = [
     { icon: <CheckCircleIcon />, text: "Join our premium medical network" },
 ];
 
+/* ── Fields validated at each step ── */
+const STEP_FIELDS = [
+    ["userName", "email", "password", "confirmPassword"],
+    ["phoneNumber", "country", "gender", "dateOfBirth"],
+    ["specialityId"],
+];
+
 export default function DoctorRegister() {
     const navigate = useNavigate();
     const [specialties, setSpecialties] = useState([]);
@@ -137,11 +144,6 @@ export default function DoctorRegister() {
         fetchSpecialties();
     }, []);
 
-    const STEP_FIELDS = [
-        ["userName", "email", "password", "confirmPassword"],
-        ["phoneNumber", "country", "gender", "dateOfBirth"],
-        ["specialityId"],
-    ];
 
     const goNext = async () => {
         const valid = await trigger(STEP_FIELDS[step]);
@@ -188,20 +190,7 @@ export default function DoctorRegister() {
 
     return (
         <>
-            <style>{`
-        @keyframes panelFadeIn { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes formFadeIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes stepSlide { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes shimmerGold { 0%,100% { background-position:0% 50%; } 50% { background-position:100% 50%; } }
-        @keyframes floatY { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-        .gold-input .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline { border-color:${GOLD} !important; }
-        .gold-input .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline { border-color:${GOLD} !important; border-width:2px !important; }
-        .gold-input .MuiInputLabel-root.Mui-focused { color:${GOLD} !important; }
-        .gold-select .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline { border-color:${GOLD} !important; }
-        .gold-select .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline { border-color:${GOLD} !important; border-width:2px !important; }
-        .gold-select .MuiInputLabel-root.Mui-focused { color:${GOLD} !important; }
-      `}</style>
-
+    
             <Box sx={{ overflowX: "hidden", display: "flex", minHeight: "100vh", fontFamily: "'Inter', sans-serif", bgcolor: "#f9f8f5" }}>
 
                 {/* LEFT PANEL */}

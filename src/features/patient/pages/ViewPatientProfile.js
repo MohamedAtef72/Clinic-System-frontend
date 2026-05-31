@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPatientById } from '../../../services/patientService';
-import { Container, Card, CardContent, Typography, Grid, CircularProgress, Box, Alert, Avatar } from "@mui/material";
+import { Container, Card, CardContent, Typography, Grid, Box, Alert, Avatar, Skeleton } from "@mui/material";
+import { usePatientProfile } from "../hooks/usePatients";
 import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import { FaEnvelope, FaGlobe, FaVenusMars, FaBirthdayCake, FaUserTie, FaIdCard, FaCalendarAlt, FaHeartbeat, FaTint } from "react-icons/fa";
 import dayjs from "dayjs";
@@ -10,34 +9,33 @@ import { GOLD, GOLD_BG, GOLD_DARK, GOLD_LIGHT, TEXT_DARK, TEXT_MID } from "../..
 export default function ViewPatientProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [patient, setPatient] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data: patientData, isLoading: loading, error: errorDoc } = usePatientProfile(id);
 
-  useEffect(() => {
-    const fetchPatient = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await getPatientById(id);
-        setPatient(res.data);
-      } catch (err) {
-        console.error("Error fetching patient profile:", err);
-        setError("Failed to load patient profile. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchPatient();
-  }, [id]);
+  const patient = patientData?.data || patientData;
+  const error = errorDoc?.message;
 
   const calculateAge = (dob) => dayjs().diff(dayjs(dob), "year");
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-        <CircularProgress size={50} sx={{ color: GOLD, mb: 3 }} />
-        <Typography sx={{ color: TEXT_MID, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>Loading Patient Profile...</Typography>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", pt: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+        <Container maxWidth="xl">
+          <BreadcrumbHeader currentPage="Profile" />
+          <Grid container spacing={3} alignItems="stretch" justifyContent="center">
+            {/* Identity Card Skeleton */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Skeleton animation="wave" variant="rectangular" height={420} width="100%" sx={{ borderRadius: 5 }} />
+            </Grid>
+            {/* Details Card Skeleton */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Skeleton animation="wave" variant="rectangular" height={420} width="100%" sx={{ borderRadius: 5 }} />
+            </Grid>
+            {/* Medical Info Card Skeleton */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Skeleton animation="wave" variant="rectangular" height={420} width="100%" sx={{ borderRadius: 5 }} />
+            </Grid>
+          </Grid>
+        </Container>
       </Box>
     );
   }

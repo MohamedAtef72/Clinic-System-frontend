@@ -35,8 +35,8 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Call the refresh endpoint
-        const refreshResponse = await api.post(
+        // Call the refresh endpoint — response handled via HttpOnly cookie
+        await api.post(
           "/Auth/Refresh",
           {},
           { withCredentials: true }

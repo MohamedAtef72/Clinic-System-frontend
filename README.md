@@ -10,12 +10,14 @@ Built with **React**, **MUI**, and **Axios** for API integration.
 
 - **React 19**
 - **React Router**
+- **TanStack Query (React Query)** (for server state management & caching)
 - **MUI** & **Tailwind CSS** (with centralized Design Tokens)
 - **Material UI Icons** (standardized iconography)
 - **Axios**
 - **FullCalendar** (for scheduling)
 - **React Hook Form & Yup** (for form validation)
 - **SignalR** (for real-time notifications)
+- **Cloudinary** (for secure media uploads)
 - **JWT Authentication**
 
 ---
@@ -40,7 +42,10 @@ clinic-system-frontend/
 │       ├── profile/
 │       ├── receptionist/
 │       └── speciality/
-│   ├── services/       # External service integrations
+│           ├── components/ # Domain-specific UI, Skeletons, Empty States
+│           ├── hooks/      # React Query custom hooks (e.g., usePatients.js)
+│           └── pages/      # Route pages
+│   ├── services/       # External service integrations (Axios)
 │   ├── App.js
 │   └── index.js
 └── package.json
@@ -88,8 +93,11 @@ npm start
 - 🗓️ Appointments Scheduling
 - ⭐ Rating System
 - 📊 Admin Dashboard with Charts & Statistics
+- ⚡ **Performance & State Management**: Advanced server state caching using **TanStack Query**, eliminating redundant network requests.
+- 🖼️ **Secure Media Handling**: Direct-to-cloud profile picture uploads via **Cloudinary** signed URLs.
+- ⏳ **Seamless UX**: High-quality structural **MUI Skeleton** loaders replacing legacy spinners to eliminate Cumulative Layout Shifts (CLS).
 - 📱 Fully Responsive UI
-- ⚡ **Optimized Architecture**: Centralized design tokens, reduced bundle size (removed unused dependencies), and patched memory leaks.
+- 🏗️ **Optimized Architecture**: Centralized design tokens, modular feature-based hooks, reduced bundle size (removed unused dependencies), and patched memory leaks.
 
 ---
 

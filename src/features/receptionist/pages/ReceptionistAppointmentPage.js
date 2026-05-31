@@ -1,9 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { getAllAppointments, updateAppointment } from '../../../services/appointmentService';
-import { getDoctorById } from '../../../services/doctorService';
-import { getPatientById } from '../../../services/patientService';
-import { getDoctorAvailabilityById } from '../../../services/availabilityService';
-import { createVisit } from '../../../services/visitService';
+import React, { useState, useMemo } from "react";
+import { useDetailedAllAppointments, useUpdateAppointment } from "../../../features/appointments/hooks/useAppointments";
+import { useCreateVisit } from "../../../features/appointments/hooks/useVisits";
 import {
   Box, Typography, CircularProgress, Alert, Pagination,
   Button, Dialog, DialogTitle, DialogContent, DialogActions,
@@ -13,17 +10,14 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import HomeIcon from '@mui/icons-material/Home';
 import { AppointmentReviewCard as AppointmentCard } from "../../appointments/components/MobileAppointmentReviewCard";
+import AppointmentReviewCardSkeleton from "../../appointments/components/skeletons/AppointmentReviewCardSkeleton";
 import AppointmentsFilterSection from "../../../components/AppointmentsFilterSection";
 import ViewRatingDialog from "../../../components/ViewRatingDialog";
 
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 /* ── Tokens ── */
 export default function ReceptionistAppointmentsPage() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
   const [statusFilter, setStatusFilter] = useState("");
 
   const theme = useTheme();
@@ -32,70 +26,20 @@ export default function ReceptionistAppointmentsPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [selectedAction, setSelectedAction] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
 
   const [ratingAppointmentId, setRatingAppointmentId] = useState(null);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuAppointment, setMenuAppointment] = useState(null);
 
-  const fetchAppointments = async () => {
-    setLoading(true);
-    try {
-      const allAppointmentsRes = await getAllAppointments(statusFilter, page);
-      const rawData = allAppointmentsRes.data || allAppointmentsRes.Data || [];
-      setTotalCount(allAppointmentsRes.totalCount || allAppointmentsRes.TotalCount || 0);
-      setPageSize(allAppointmentsRes.pageSize || allAppointmentsRes.PageSize || 5);
+  const { data: appointmentsRes, isLoading: loadingDocs } = useDetailedAllAppointments(statusFilter, page);
+  const updateAppointmentMutation = useUpdateAppointment();
+  const createVisitMutation = useCreateVisit();
 
-      const detailedAppointments = await Promise.all(
-        rawData.map(async (a) => {
-          // Normalize appointment fields
-          const appt = {
-            id: a.id || a.Id,
-            doctorId: a.doctorId || a.DoctorId,
-            patientId: a.patientId || a.PatientId,
-            availabilityId: a.availabilityId || a.AvailabilityId,
-            appointmentStatus: a.appointmentStatus || a.AppointmentStatus,
-            ...a
-          };
-
-          try {
-            const [doctorRes, patientRes, availabilityRes] = await Promise.all([
-              getDoctorById(appt.doctorId),
-              getPatientById(appt.patientId),
-              getDoctorAvailabilityById(appt.availabilityId),
-            ]);
-
-            const doctorData = doctorRes?.data || doctorRes;
-            const patientData = patientRes?.data || patientRes;
-            const availabilityData = availabilityRes?.Data || availabilityRes.data;
-
-            return {
-              ...appt,
-              doctorPrice: doctorData?.consulationPrice || doctorData?.ConsulationPrice || 0,
-              doctorName: doctorData?.userName || doctorData?.UserName || "N/A",
-              patientName: patientData?.userName || patientData?.UserName || "N/A",
-              startTime: availabilityData?.startTime || availabilityData?.StartTime,
-              endTime: availabilityData?.endTime || availabilityData?.EndTime,
-              patientCountry: patientData?.country || patientData?.Country || "N/A",
-              doctorCountry: doctorData?.country || doctorData?.Country || "N/A",
-            };
-          } catch (err) {
-            return { ...appt, doctorName: "Error", patientName: "Error" };
-          }
-        })
-      );
-      setAppointments(detailedAppointments);
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [page, statusFilter]);
+  const appointments = appointmentsRes?.data || [];
+  const totalCount = appointmentsRes?.totalCount || 0;
+  const pageSize = appointmentsRes?.pageSize || 5;
+  const loading = loadingDocs;
 
   const handleApplyFilter = () => setPage(1);
 
@@ -113,17 +57,16 @@ export default function ReceptionistAppointmentsPage() {
   };
 
   const handleCloseDialog = () => {
-    if (actionLoading) return;
+    if (updateAppointmentMutation.isPending || createVisitMutation.isPending) return;
     setOpenDialog(false);
   };
 
   const handleConfirmAction = async () => {
     if (!selectedAppointment) return;
-    setActionLoading(true);
     try {
-      await updateAppointment(selectedAppointment.id, { appointmentStatus: selectedAction });
+      await updateAppointmentMutation.mutateAsync({ id: selectedAppointment.id, data: { appointmentStatus: selectedAction } });
       if (selectedAction === "CheckedIn") {
-        await createVisit({
+        await createVisitMutation.mutateAsync({
           appointmentId: selectedAppointment.id,
           price: selectedAppointment.doctorPrice,
           visitStatus: "CheckedIn",
@@ -132,11 +75,8 @@ export default function ReceptionistAppointmentsPage() {
         });
       }
       handleCloseDialog();
-      fetchAppointments();
     } catch (error) {
       console.error("Error performing action:", error);
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -152,17 +92,9 @@ export default function ReceptionistAppointmentsPage() {
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  if (loading && !appointments.length) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress sx={{ color: GOLD }} />
-      </Box>
-    );
-  }
-
   return (
     <>
-<Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", py: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", py: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
         <Container maxWidth="xl">
 
           {/* Top Bar Container */}
@@ -199,7 +131,15 @@ export default function ReceptionistAppointmentsPage() {
 
               {/* Right Side: Appointments Grid */}
               <Grid item xs sx={{ minWidth: 0 }}>
-                {appointments.length === 0 && !loading ? (
+                {loading ? (
+                  <Grid container spacing={3}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Grid item xs={12} sm={6} lg={4} xl={4} key={i}>
+                        <AppointmentReviewCardSkeleton />
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : appointments.length === 0 ? (
                   <Box sx={{ textAlign: "center", py: 8, borderRadius: 4, border: "1px dashed rgba(184,151,42,0.3)", bgcolor: GOLD_BG }}>
                     <CalendarMonthIcon sx={{ fontSize: 48, color: `${GOLD}66`, mb: 1.5 }} />
                     <Typography sx={{ color: TEXT_MID, fontWeight: 500 }}>No appointments found.</Typography>
@@ -296,10 +236,10 @@ export default function ReceptionistAppointmentsPage() {
             <DialogActions sx={{ p: 2, pt: 1 }}>
               <Button onClick={handleCloseDialog} sx={{ color: TEXT_MID, fontWeight: 600, textTransform: "none" }}>Cancel</Button>
               <Button
-                onClick={handleConfirmAction} variant="contained" disabled={actionLoading}
+                onClick={handleConfirmAction} variant="contained" disabled={updateAppointmentMutation.isPending || createVisitMutation.isPending}
                 sx={{ borderRadius: 50, px: 3, bgcolor: GOLD, "&:hover": { bgcolor: GOLD_DARK }, textTransform: "none", fontWeight: 600 }}
               >
-                {actionLoading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Confirm"}
+                {updateAppointmentMutation.isPending || createVisitMutation.isPending ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Confirm"}
               </Button>
             </DialogActions>
           </Dialog>

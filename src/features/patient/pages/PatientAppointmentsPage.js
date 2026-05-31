@@ -1,29 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { getPatientAppointments } from '../../../services/appointmentService';
-import { getDoctorById } from '../../../services/doctorService';
-import { getDoctorAvailabilityById } from '../../../services/availabilityService';
-import { getVisitById } from '../../../services/visitService';
-import { rateDoctor, updateDoctorRate, getRateByAppointmentId } from '../../../services/ratingService';
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
-import { Box, Typography, CircularProgress, Alert, Pagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Rating, Stack, useTheme, useMediaQuery, Container, Grid, Drawer, IconButton } from "@mui/material";
+import { Box, Typography, CircularProgress, Alert, Pagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Rating, Stack, useTheme, useMediaQuery, Container, Grid, Drawer, IconButton, Skeleton } from "@mui/material";
 import { PatientAppointmentCard } from "../components/PatientAppointmentCard";
+import AppointmentCardSkeleton from "../../appointments/components/skeletons/AppointmentCardSkeleton";
 import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import AppointmentsFilterSection from "../../../components/AppointmentsFilterSection";
-
-
+import { useDetailedPatientAppointments } from "../../../features/appointments/hooks/useAppointments";
+import { useVisitDetails } from "../../../features/appointments/hooks/useVisits";
+import { useRateDoctor, useUpdateRate } from "../../../features/doctor/hooks/useDoctors";
+import { getRateByAppointmentId } from "../../../services/ratingService";
 import { GOLD, GOLD_BG, GOLD_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function PatientAppointmentsPage() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pageNumber, setPageNumber] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
 
   const { user } = useAuth();
 
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
-  const [visitDetails, setVisitDetails] = useState(null);
-  const [visitLoading, setVisitLoading] = useState(false);
+  const [activeVisitId, setActiveVisitId] = useState(null);
 
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -35,76 +29,33 @@ export default function PatientAppointmentsPage() {
   const [ratingSuccess, setRatingSuccess] = useState(false);
   const [hasExistingRating, setHasExistingRating] = useState(false);
 
+  const { data: appointmentsRes, isLoading: loadingDocs } = useDetailedPatientAppointments(user?.id, statusFilter, pageNumber);
+  const rateDoctorMutation = useRateDoctor();
+  const updateRateMutation = useUpdateRate();
+
+  // Conditionally fetch visit details when notes dialog is open
+  const { data: visitDetailsData, isLoading: visitLoading } = useVisitDetails(activeVisitId, visitDialogOpen);
+  const [visitDetails, setVisitDetails] = useState(null);
+
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!user) return;
-      setLoading(true);
-      try {
-        const res = await getPatientAppointments(statusFilter, user.id, pageNumber);
-        setTotalCount(res.totalCount || 0);
+    if (visitDetailsData) {
+      setVisitDetails(visitDetailsData);
+    }
+  }, [visitDetailsData]);
 
-        const detailedAppointments = await Promise.all(
-          (res.data || []).map(async (a) => {
-            const appointmentData = { ...a, doctor: {}, hasRated: false, rateId: null };
-            try {
-              const doctorRes = await getDoctorById(a.doctorId);
-              const dData = doctorRes?.data || doctorRes;
-              appointmentData.doctor = {
-                ...dData,
-                userName: dData?.userName || dData?.UserName || "N/A",
-                country: dData?.country || dData?.Country || "N/A",
-                specialityName: dData?.specialityName || dData?.SpecialityName || "N/A",
-              };
-              appointmentData.doctorPrice = dData?.consulationPrice || dData?.ConsulationPrice || 0;
-            } catch (err) { }
-            try {
-              const availabilityRes = await getDoctorAvailabilityById(a.availabilityId);
-              const avail = availabilityRes?.Data ?? availabilityRes?.data ?? {};
-              appointmentData.startTime = avail.StartTime ?? avail.startTime;
-              appointmentData.endTime = avail.EndTime ?? avail.endTime;
-            } catch (err) {
-              appointmentData.startTime = a.startTime || a.appointmentDate;
-              appointmentData.endTime = a.endTime;
-            }
-            try {
-              if (a.appointmentStatus === "Completed") {
-                const ratingRes = await getRateByAppointmentId(a.id);
-                if (ratingRes?.data) {
-                  appointmentData.hasRated = true;
-                  appointmentData.rateId = ratingRes.data.id;
-                }
-              }
-            } catch { }
-            return appointmentData;
-          })
-        );
-        setAppointments(detailedAppointments);
-      } catch (error) {
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAppointments();
-  }, [user, pageNumber, statusFilter]);
+  const appointments = appointmentsRes?.data || [];
+  const totalCount = appointmentsRes?.totalCount || 0;
+  const loading = loadingDocs;
 
   const handlePageChange = (event, value) => setPageNumber(value);
   const handleApplyFilter = () => setPageNumber(1);
   const handleCloseVisitDialog = () => setVisitDialogOpen(false);
   const handleCloseRatingDialog = () => setRatingDialogOpen(false);
 
-  const handleShowNotes = async (visitId) => {
+  const handleShowNotes = (visitId) => {
     if (!visitId) return;
+    setActiveVisitId(visitId);
     setVisitDialogOpen(true);
-    setVisitLoading(true);
-    try {
-      const res = await getVisitById(visitId);
-      setVisitDetails(res.data || null);
-    } catch (error) {
-      setVisitDetails(null);
-    } finally {
-      setVisitLoading(false);
-    }
   };
 
   const handleOpenRating = (doctor, appointmentId, hasRated, rateId) => {
@@ -130,21 +81,17 @@ export default function PatientAppointmentsPage() {
 
   const handleConfirmRating = async () => {
     if (!selectedDoctor || !selectedAppointmentId) return;
-    setRatingLoading(true);
     try {
       if (!hasExistingRating) {
-        await rateDoctor({
+        await rateDoctorMutation.mutateAsync({
           appointmentId: selectedAppointmentId, doctorId: selectedDoctor.id, patientId: user.id, rate: ratingValue, comment,
         });
         setRatingSuccess(true);
-        setAppointments((prev) => prev.map((app) => app.id === selectedAppointmentId ? { ...app, hasRated: true } : app));
       } else if (selectedRateId) {
-        await updateDoctorRate(selectedRateId, { rate: ratingValue, comment: comment });
+        await updateRateMutation.mutateAsync({ id: selectedRateId, ratingData: { rate: ratingValue, comment: comment } });
         setRatingSuccess(true);
       }
-    } catch (err) { } finally {
-      setRatingLoading(false);
-    }
+    } catch (err) { }
   };
 
   const dialogInputSx = {
@@ -176,10 +123,14 @@ export default function PatientAppointmentsPage() {
 
               {/* Right Side: Appointments Grid */}
               <Grid item xs sx={{ minWidth: 0 }}>
-                {loading && appointments.length === 0 ? (
-                  <Box display="flex" justifyContent="center" alignItems="center" py={10}>
-                    <CircularProgress sx={{ color: GOLD }} />
-                  </Box>
+                {loading ? (
+                  <Grid container spacing={3}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Grid item key={i}>
+                        <AppointmentCardSkeleton />
+                      </Grid>
+                    ))}
+                  </Grid>
                 ) : appointments.length === 0 ? (
                   <Alert severity="info" sx={{ borderRadius: 3 }}>You have no appointments matching this criteria.</Alert>
                 ) : (
@@ -254,8 +205,8 @@ export default function PatientAppointmentsPage() {
             <DialogActions sx={{ p: 2, justifyContent: "space-between", borderTop: `1px solid ${GOLD}20` }}>
               <Button onClick={handleCloseRatingDialog} sx={{ color: TEXT_MID, fontWeight: 600 }}>Close</Button>
               {!ratingSuccess && (
-                <Button onClick={handleConfirmRating} variant="contained" disabled={ratingLoading || !ratingValue} sx={{ bgcolor: GOLD, color: "white", borderRadius: 50, px: 3, "&:hover": { bgcolor: GOLD_DARK } }}>
-                  {hasExistingRating ? "Update Rating" : "Submit Rating"}
+                <Button onClick={handleConfirmRating} variant="contained" disabled={rateDoctorMutation.isPending || updateRateMutation.isPending || !ratingValue} sx={{ bgcolor: GOLD, color: "white", borderRadius: 50, px: 3, "&:hover": { bgcolor: GOLD_DARK } }}>
+                  {rateDoctorMutation.isPending || updateRateMutation.isPending ? <CircularProgress size={20} sx={{ color: "white" }} /> : hasExistingRating ? "Update Rating" : "Submit Rating"}
                 </Button>
               )}
             </DialogActions>

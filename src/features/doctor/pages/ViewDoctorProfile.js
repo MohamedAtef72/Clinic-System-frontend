@@ -1,9 +1,6 @@
-import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDoctorById } from '../../../services/doctorService';
-import { getRatingByDoctorId } from '../../../services/ratingService';
-import { Container, Card, CardContent, Typography, Grid, CircularProgress, Box, Alert, Breadcrumbs, Link, Avatar, Divider, Rating } from "@mui/material";
-
+import { Container, Card, CardContent, Typography, Grid, Box, Alert, Breadcrumbs, Link, Avatar, Divider, Rating, Skeleton } from "@mui/material";
+import { useDoctorProfile, useDoctorRating } from "../hooks/useDoctors";
 import { FaEnvelope, FaGlobe, FaVenusMars, FaBirthdayCake, FaStethoscope, FaUserTie, FaIdCard, FaStar, FaCalendarAlt } from "react-icons/fa";
 import dayjs from "dayjs";
 import BreadcrumbHeader from "../../../components/BreadcrumbHeader";
@@ -12,40 +9,37 @@ import { GOLD, GOLD_BG, GOLD_DARK, GOLD_LIGHT, TEXT_DARK, TEXT_MID } from "../..
 export default function ViewDoctorProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [doctor, setDoctor] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [rating, setRating] = useState(0);
-  const [totalRatings, setTotalRatings] = useState(0);
+  const { data: doctorData, isLoading: loadingDoc, error: errorDoc } = useDoctorProfile(id);
+  const { data: ratingData, isLoading: loadingRating } = useDoctorRating(id);
 
-  useEffect(() => {
-    const fetchDoctor = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await getDoctorById(id);
-        setDoctor(res.data);
-
-        const ratingRes = await getRatingByDoctorId(id);
-        setRating(ratingRes?.data?.averageRate || 0);
-        setTotalRatings(ratingRes?.data?.totalRatings || 0);
-      } catch (err) {
-        console.error("Error fetching doctor profile:", err);
-        setError("Failed to load doctor profile. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchDoctor();
-  }, [id]);
+  const doctor = doctorData?.data || doctorData;
+  const rating = ratingData?.data?.averageRate || 0;
+  const totalRatings = ratingData?.data?.totalRatings || 0;
+  const loading = loadingDoc;
+  const error = errorDoc?.message;
 
   const calculateAge = (dob) => dayjs().diff(dayjs(dob), "year");
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-        <CircularProgress size={50} sx={{ color: GOLD, mb: 3 }} />
-        <Typography sx={{ color: TEXT_MID, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>Loading Doctor Profile...</Typography>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", pt: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+        <Container maxWidth="xl">
+          <BreadcrumbHeader currentPage="Profile" />
+          <Grid container spacing={3} alignItems="stretch" justifyContent="center">
+            {/* Identity Card Skeleton */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Skeleton animation="wave" variant="rectangular" height={450} width="100%" sx={{ borderRadius: 5 }} />
+            </Grid>
+            {/* Details Card Skeleton */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Skeleton animation="wave" variant="rectangular" height={450} width="100%" sx={{ borderRadius: 5 }} />
+            </Grid>
+            {/* Professional Card Skeleton */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Skeleton animation="wave" variant="rectangular" height={450} width="100%" sx={{ borderRadius: 5 }} />
+            </Grid>
+          </Grid>
+        </Container>
       </Box>
     );
   }
