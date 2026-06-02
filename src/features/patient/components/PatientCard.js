@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useState } from "react";
 import { deleteProfile } from '../../../services/userService';
+import { useQueryClient } from "@tanstack/react-query";
 import { FaUser, FaGlobe } from "react-icons/fa";
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -10,6 +11,7 @@ import { GOLD, GOLD_DARK, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 export default function PatientCard({ patient }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -20,7 +22,9 @@ export default function PatientCard({ patient }) {
     try {
       await deleteProfile(patient.userId);
       setOpenDeleteDialog(false);
-      window.location.reload();
+      // Invalidate patient queries so the list updates without a page reload
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     } catch (error) {
       console.error("Error deleting patient:", error);
     } finally {
