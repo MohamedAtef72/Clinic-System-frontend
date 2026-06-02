@@ -136,7 +136,7 @@ export default function MainProfile({ user, roles, onEditClick, isEditing }) {
                       <Typography sx={{ color: TEXT_MID, fontWeight: 600, fontSize: "0.95rem" }}>
                         {item.label}:
                       </Typography>
-                      <Typography sx={{ color: TEXT_DARK, fontWeight: 700, fontSize: "0.95rem", wordBreak: "break-all" }}>
+                      <Typography sx={{ color: TEXT_DARK, fontWeight: 700, fontSize: "0.95rem" }}>
                         {item.value}
                       </Typography>
                     </Box>

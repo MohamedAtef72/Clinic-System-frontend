@@ -28,13 +28,13 @@ export default function EditProfile({ onSuccess, onCancelBtn, isDialog, open, on
         const res = await userProfile();
         const user = res.user;
         setForm({
-          userName: user.UserName || '',
-          country: user.Country || '',
-          bloodType: user.BloodType || '',
-          medicalHistory: user.MedicalHistory || '',
-          shiftStart: user.ShiftStart || '',
-          shiftEnd: user.ShiftEnd || '',
-          imagePath: user.ImagePath || ''
+          userName: user.UserName ?? user.userName ?? '',
+          country: user.Country ?? user.country ?? '',
+          bloodType: user.BloodType ?? user.bloodType ?? '',
+          medicalHistory: user.MedicalHistory ?? user.medicalHistory ?? '',
+          shiftStart: user.ShiftStart ?? user.shiftStart ?? '',
+          shiftEnd: user.ShiftEnd ?? user.shiftEnd ?? '',
+          imagePath: user.ImagePath ?? user.imagePath ?? ''
         });
         setRoles(res.role || []);
       } catch (err) {
@@ -46,7 +46,11 @@ export default function EditProfile({ onSuccess, onCancelBtn, isDialog, open, on
     fetchUser();
   }, []);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -79,18 +83,18 @@ export default function EditProfile({ onSuccess, onCancelBtn, isDialog, open, on
       };
 
       if (roles.includes("Patient")) {
-        if (form.bloodType) updateData.BloodType = form.bloodType;
-        if (form.medicalHistory) updateData.MedicalHistory = form.medicalHistory;
+        updateData.BloodType = form.bloodType;
+        updateData.MedicalHistory = form.medicalHistory;
       }
 
       if (roles.includes("Receptionist")) {
-        if (form.shiftStart) updateData.ShiftStart = form.shiftStart;
-        if (form.shiftEnd) updateData.ShiftEnd = form.shiftEnd;
+        updateData.ShiftStart = form.shiftStart;
+        updateData.ShiftEnd = form.shiftEnd;
       }
 
       // 3. Send the update request
       const res = await userUpdate(updateData);
-      
+
       if (res.status === 200) {
         if (onClose) onClose();
         else if (onSuccess) onSuccess();
