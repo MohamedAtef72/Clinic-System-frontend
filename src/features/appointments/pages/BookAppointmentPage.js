@@ -4,6 +4,7 @@ import { getDoctorById } from '../../../services/doctorService';
 import { getDoctorAvailabilities } from '../../../services/availabilityService';
 import { createAppointment } from '../../../services/appointmentService';
 import { currentUser } from '../../../services/userService';
+import { useQueryClient } from "@tanstack/react-query";
 import { Typography, Avatar, Button, Box, CircularProgress, Alert, Stack, Chip } from "@mui/material";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
@@ -48,6 +49,7 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
   const { doctorId: paramDoctorId } = useParams();
   const doctorId = propDoctorId || paramDoctorId;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [doctor, setDoctor] = useState(null);
   const [availabilities, setAvailabilities] = useState([]);
@@ -115,6 +117,9 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
         date: slot.startTime,
         appointmentStatus: "Schedule",
       });
+      // Invalidate so appointments list and doctor's schedule reflect the new booking
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule", doctorId] });
       setMessage({ text: res.message || "Appointment booked successfully!", type: "success" });
       setTimeout(() => navigate("/"), 1500);
     } catch {

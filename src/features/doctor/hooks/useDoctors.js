@@ -44,8 +44,8 @@ export const useRateDoctor = () => {
   return useMutation({
     mutationFn: (ratingData) => rateDoctor(ratingData),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(["doctors", "rating", variables.doctorId]);
-      queryClient.invalidateQueries(["appointments", "patient", "detailed"]);
+      queryClient.invalidateQueries({ queryKey: ["doctors", "rating", variables.doctorId] });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
     }
   });
 };
@@ -55,8 +55,8 @@ export const useUpdateRate = () => {
   return useMutation({
     mutationFn: ({ id, ratingData }) => updateDoctorRate(id, ratingData),
     onSuccess: () => {
-      queryClient.invalidateQueries(["doctors", "rating"]);
-      queryClient.invalidateQueries(["appointments", "patient", "detailed"]);
+      queryClient.invalidateQueries({ queryKey: ["doctors", "rating"] });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
     }
   });
 };

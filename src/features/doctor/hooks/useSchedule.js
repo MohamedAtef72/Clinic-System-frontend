@@ -19,7 +19,8 @@ export const useAddSchedule = () => {
   return useMutation({
     mutationFn: (data) => addAvailability(data),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(["schedule", variables.doctorId]);
+      queryClient.invalidateQueries({ queryKey: ["schedule", variables.doctorId] });
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 };
@@ -28,8 +29,8 @@ export const useUpdateSchedule = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => updateAvailability(id, data),
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(["schedule"]);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 };
@@ -39,7 +40,7 @@ export const useDeleteSchedule = () => {
   return useMutation({
     mutationFn: (id) => deleteAvailability(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(["schedule"]);
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 };

@@ -165,7 +165,7 @@ export const useUpdateAppointment = () => {
   return useMutation({
     mutationFn: ({ id, data }) => updateAppointment(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
     },
   });
 };
