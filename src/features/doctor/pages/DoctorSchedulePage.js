@@ -35,7 +35,6 @@ export default function DoctorSchedulePage() {
     }));
   };
   
-  const availabilities = normalizeAvailabilities(rawAvailabilities);
 
   const [day, setDay] = useState("");
   const [slots, setSlots] = useState([]);
@@ -50,6 +49,7 @@ export default function DoctorSchedulePage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    const availabilities = normalizeAvailabilities(rawAvailabilities);
     const grouped = {};
     availabilities.forEach((a) => {
       if (!a.startTime) return;
@@ -62,7 +62,7 @@ export default function DoctorSchedulePage() {
       }
     });
     setGroupedByDay(grouped);
-  }, [availabilities]);
+  }, [rawAvailabilities]); // depend on the stable React Query reference, not a derived array
 
   const filteredDays = Object.keys(groupedByDay).filter((date) => {
     const d = new Date(date);

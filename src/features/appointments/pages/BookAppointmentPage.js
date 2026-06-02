@@ -4,10 +4,7 @@ import { getDoctorById } from '../../../services/doctorService';
 import { getDoctorAvailabilities } from '../../../services/availabilityService';
 import { createAppointment } from '../../../services/appointmentService';
 import { currentUser } from '../../../services/userService';
-import {
-  Typography, Avatar, Button, Box, CircularProgress, Alert,
-  Stack, Chip,
-} from "@mui/material";
+import { Typography, Avatar, Button, Box, CircularProgress, Alert, Stack, Chip } from "@mui/material";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
@@ -18,13 +15,12 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloseIcon from "@mui/icons-material/Close";
-import { Dialog, DialogContent, DialogTitle, IconButton } from "@mui/material";
+import { Dialog, DialogContent, IconButton } from "@mui/material";
 
 import { GOLD, GOLD_BG, GOLD_DARK, GOLD_LIGHT, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 /* ── Tokens ── */
 const BORDER_CLR = "rgba(184,151,42,0.2)";
 
-/* Generate recurring slots */
 /* Normalize a PascalCase API slot to camelCase */
 const normalize = (slot) => ({
   ...slot,
@@ -36,31 +32,13 @@ const normalize = (slot) => ({
   recurrenceEndDate: slot.RecurrenceEndDate ?? slot.recurrenceEndDate,
 });
 
-const generateRecurringAvailabilities = (availabilities) => {
-  const allSlots = [];
-  availabilities.forEach((a) => {
-    const norm = normalize(a);
-    allSlots.push({ ...norm, originalId: norm.id });
-    if (norm.recurrencePattern && norm.recurrenceEndDate) {
-      let start = new Date(norm.startTime);
-      let end = new Date(norm.endTime);
-      const recurrenceEnd = new Date(norm.recurrenceEndDate);
-      while (true) {
-        start.setDate(start.getDate() + 7);
-        end.setDate(end.getDate() + 7);
-        if (start > recurrenceEnd) break;
-        allSlots.push({
-          ...norm,
-          id: `${norm.id}-${start.toISOString()}`,
-          originalId: norm.id,
-          startTime: new Date(start),
-          endTime: new Date(end),
-        });
-      }
-    }
+// The backend already pre-expands all recurring occurrences into individual rows.
+// We only need to normalize the field names (PascalCase → camelCase).
+const normalizeSlots = (slots) =>
+  slots.map((a) => {
+    const n = normalize(a);
+    return { ...n, originalId: n.id };
   });
-  return allSlots;
-};
 
 /* Format short time */
 const fmtTime = (dt) =>
@@ -91,7 +69,8 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
           );
         setDoctor(doctorRes.data);
         setPatientId(userRes.user?.id || userRes.userId);
-        setAvailabilities(generateRecurringAvailabilities(availabilityRes.Data || []));
+        const rawSlots = availabilityRes.Data || availabilityRes.data || [];
+        setAvailabilities(normalizeSlots(rawSlots));
       } catch {
         setMessage({ text: "Failed to load doctor data.", type: "error" });
       } finally {
@@ -110,7 +89,9 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
     });
     const grouped = {};
     filtered.forEach((a) => {
-      const key = new Date(a.startTime).toISOString().split("T")[0];
+      // Use local date string to avoid UTC/local timezone mismatch
+      const d = new Date(a.startTime);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(a);
     });
@@ -468,7 +449,7 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
 
   return (
     <>
-{isDialog === true ? (
+      {isDialog === true ? (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4, bgcolor: "#f9f8f5", p: 1 } }}>
           <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
             {innerContent}

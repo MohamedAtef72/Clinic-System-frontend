@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import queryClient from './queryClient';
 
 // Infrastructure
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -62,7 +63,7 @@ const AddSpeciality = lazy(() =>
 const NotificationsPage = lazy(() => import("./features/notifications/pages/NotificationsPage"));
 
 
-const queryClient = new QueryClient();
+
 
 function App() {
   return (

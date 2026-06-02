@@ -35,7 +35,6 @@ const normalizeUser = (u) => {
 };
 
 export default function Profile() {
-  console.log("Profile Render");
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
 
@@ -50,7 +49,6 @@ export default function Profile() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["user"],
     queryFn: getUserData,
-    staleTime: 10 * 60 * 1000, // 5 minutes
   });
 
   const user = data?.user || null;

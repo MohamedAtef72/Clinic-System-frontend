@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { currentUser } from '../services/userService';
 import { login as apiLogin, logout as apiLogout } from '../services/authService';
+import queryClient from '../queryClient';
 
 const AuthContext = createContext();
 
@@ -45,6 +46,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       // Swallow errors — still clear local state so the UI resets
     } finally {
+      // Wipe ALL TanStack Query cache so the next user never sees stale data
+      queryClient.clear();
       setUser(null);
       setIsAuthenticated(false);
     }
