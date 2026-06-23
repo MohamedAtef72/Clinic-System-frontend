@@ -42,7 +42,7 @@ export default function Profile() {
     const res = await userProfile();
     return {
       user: normalizeUser(res.user || null),
-      role: res.role || []
+      roles: res.role || []
     }
   };
 
@@ -66,6 +66,15 @@ export default function Profile() {
 
   return (
     <>
+      {/* Global keyframes for avatar hover animation */}
+      <style>{`
+        @keyframes subtleScale {
+          0%   { transform: scale(1); }
+          50%  { transform: scale(1.02); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
+
       <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", pt: { xs: 5, md: 5 }, pb: 5, fontFamily: "'Inter', sans-serif" }}>
         <Container maxWidth="xl">
 
@@ -73,26 +82,33 @@ export default function Profile() {
 
           {error && !user && !isLoading ? (
             <Container maxWidth="md" sx={{ mt: 5 }}>
-              <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+              <Alert severity="error" sx={{ borderRadius: 3 }}>{error?.message || String(error)}</Alert>
             </Container>
           ) : (
             <Grid container spacing={3} alignItems="stretch" justifyContent="center">
               {isLoading ? (
                 <>
-                  <Grid size={{ xs: 10, md: 4, lg: 3 }} sx={{ display: 'flex', width: '100%' }}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} sx={{ display: 'flex' }}>
                     <Skeleton animation="wave" variant="rectangular" width="100%" height={380} sx={{ borderRadius: 5 }} />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 4, lg: 3.2 }} sx={{ display: 'flex', width: '100%' }}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3.2 }} sx={{ display: 'flex' }}>
                     <Skeleton animation="wave" variant="rectangular" width="100%" height={380} sx={{ borderRadius: 5 }} />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 4, lg: 3.2 }} sx={{ display: 'flex', width: '100%' }}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3.2 }} sx={{ display: 'flex' }}>
                     <Skeleton animation="wave" variant="rectangular" width="100%" height={380} sx={{ borderRadius: 5 }} />
                   </Grid>
                 </>
               ) : (
                 <>
-                  {user && <MainProfile user={user} roles={roles} onEditClick={() => setIsEditing(true)} />}
-                  {renderRoleComponent()}
+                  {user && (
+                    <MainProfile
+                      user={user}
+                      roles={roles}
+                      onEditClick={() => setIsEditing(true)}
+                      isEditing={isEditing}
+                    />
+                  )}
+                  {!isEditing && renderRoleComponent()}
                 </>
               )}
             </Grid>
