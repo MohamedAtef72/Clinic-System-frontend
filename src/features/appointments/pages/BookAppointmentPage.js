@@ -16,7 +16,7 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloseIcon from "@mui/icons-material/Close";
-import { Dialog, DialogContent, IconButton } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from "@mui/material";
 
 import { GOLD, GOLD_BG, GOLD_DARK, GOLD_LIGHT, TEXT_DARK, TEXT_MID } from "../../../theme/tokens";
 /* ── Tokens ── */
@@ -61,6 +61,7 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
   const [message, setMessage] = useState({ text: "", type: "" });
   const [patientId, setPatientId] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -102,15 +103,46 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
     setSelectedAvailability("");
   }, [availabilities, currentMonth]);
 
+  const handleOpenConfirm = () => {
+    if (!selectedAvailability) {
+      setMessage({ text: "Please select a time slot before confirming.", type: "warning" });
+      return;
+    }
+    const slot = availabilities.find((a) => a.id.toString() === selectedAvailability.toString());
+    if (slot) {
+      const slotStartTime = new Date(slot.startTime);
+      if (slotStartTime < new Date()) {
+        setMessage({ text: "Cannot book an appointment in the past.", type: "error" });
+        setConfirmOpen(true);
+        return;
+      }
+    }
+    setMessage({ text: "", type: "" });
+    setConfirmOpen(true);
+  };
+
+  const handleCloseConfirm = () => {
+    setConfirmOpen(false);
+    setMessage({ text: "", type: "" });
+  };
+
   const handleSubmit = async () => {
     if (!selectedAvailability) {
       setMessage({ text: "Please select a time slot before confirming.", type: "warning" });
       return;
     }
+    const slot = availabilities.find((a) => a.id.toString() === selectedAvailability.toString());
+    if (!slot) {
+      setMessage({ text: "Slot not found.", type: "error" });
+      return;
+    }
+    const slotStartTime = new Date(slot.startTime);
+    if (slotStartTime < new Date()) {
+      setMessage({ text: "Cannot book an appointment in the past.", type: "error" });
+      return;
+    }
     setSubmitting(true);
     try {
-      const slot = availabilities.find((a) => a.id.toString() === selectedAvailability.toString());
-      if (!slot) throw new Error("Slot not found");
       const res = await createAppointment({
         patientId,
         availabilityId: slot.originalId,
@@ -121,7 +153,15 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["schedule", doctorId] });
       setMessage({ text: res.message || "Appointment booked successfully!", type: "success" });
-      setTimeout(() => navigate("/"), 1500);
+      setTimeout(() => {
+        setConfirmOpen(false);
+        setMessage({ text: "", type: "" });
+        if (isDialog && onClose) {
+          onClose();
+        } else {
+          navigate("/");
+        }
+      }, 1500);
     } catch {
       setMessage({ text: "Failed to create appointment. Please try again.", type: "error" });
     } finally {
@@ -188,7 +228,7 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
         )}
 
         {/* ── Message alert ── */}
-        {message.text && (
+        {message.text && !confirmOpen && (
           <Alert
             severity={message.type || "info"}
             sx={{
@@ -423,7 +463,7 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
           <Button
             fullWidth
             disabled={!selectedAvailability || submitting}
-            onClick={handleSubmit}
+            onClick={handleOpenConfirm}
             sx={{
               py: 1.6, borderRadius: 50, fontWeight: 700, fontSize: "1rem",
               textTransform: "none",
@@ -449,6 +489,78 @@ export default function BookAppointmentPage({ doctorId: propDoctorId, isDialog, 
           </Button>
         )}
       </Box>
+
+      {/* Confirmation Dialog */}
+      <Dialog 
+        open={confirmOpen} 
+        onClose={() => !submitting && handleCloseConfirm()} 
+        maxWidth="xs" 
+        fullWidth 
+        PaperProps={{ sx: { borderRadius: 3, border: `1px solid ${GOLD}20` } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: "1rem", color: TEXT_DARK, borderBottom: `1px solid ${GOLD}15`, bgcolor: GOLD_BG, py: 2 }}>
+          Confirm Booking
+        </DialogTitle>
+        <DialogContent sx={{ py: 3, pt: "24px !important" }}>
+          {message.text ? (
+            <Alert 
+              severity={message.type || "info"} 
+              sx={{ 
+                borderRadius: 2,
+                ...(message.type === "success" && { bgcolor: GOLD_BG, color: GOLD_DARK, border: `1px solid ${GOLD}40`, "& .MuiAlert-icon": { color: GOLD } }),
+              }}
+            >
+              {message.text}
+            </Alert>
+          ) : (
+            <Stack spacing={2}>
+              <Typography sx={{ color: TEXT_MID, fontSize: "0.95rem" }}>
+                Are you sure you want to book this appointment with <b>Dr. {doctor.userName}</b>?
+              </Typography>
+              {selectedDay && selectedAvailability && (() => {
+                const slot = availabilities.find((a) => a.id.toString() === selectedAvailability.toString());
+                if (!slot) return null;
+                return (
+                  <Box sx={{ p: 2, bgcolor: "#f9f8f5", borderRadius: 2, border: `1px solid rgba(184,151,42,0.15)` }}>
+                    <Typography variant="body2" sx={{ color: TEXT_DARK, fontWeight: 700 }}>
+                      Date: {new Date(selectedDay).toLocaleDateString("default", { weekday: "long", month: "short", day: "numeric" })}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: TEXT_DARK, fontWeight: 700, mt: 0.5 }}>
+                      Time: {fmtTime(slot.startTime)} – {fmtTime(slot.endTime)}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: GOLD_DARK, fontWeight: 800, mt: 1 }}>
+                      Price: {doctor.consulationPrice} EGP
+                    </Typography>
+                  </Box>
+                );
+              })()}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1 }}>
+          <Button 
+            onClick={handleCloseConfirm} 
+            disabled={submitting} 
+            sx={{ color: TEXT_MID, fontWeight: 600, textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          {(() => {
+            const slot = availabilities.find((a) => a.id.toString() === selectedAvailability.toString());
+            const isPastDate = slot ? new Date(slot.startTime) < new Date() : false;
+            return message.type !== "success" && !isPastDate && (
+              <Button
+                onClick={handleSubmit} 
+                variant="contained" 
+                disabled={submitting}
+                sx={{ borderRadius: 50, px: 3, bgcolor: GOLD, "&:hover": { bgcolor: GOLD_DARK }, textTransform: "none", fontWeight: 600 }}
+              >
+                {submitting ? <CircularProgress size={20} sx={{ color: "white" }} /> : "Confirm"}
+              </Button>
+            );
+          })()}
+        </DialogActions>
+      </Dialog>
     </>
   );
 
