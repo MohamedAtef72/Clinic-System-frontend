@@ -146,6 +146,7 @@ export const useDetailedAllAppointments = (status = "", pageNumber = 1) => {
               patientName: patientData?.userName || patientData?.UserName || "N/A",
               patientCountry: patientData?.country || patientData?.Country || "N/A",
               doctorCountry: doctorData?.country || doctorData?.Country || "N/A",
+              doctorPrice: doctorData?.consulationPrice || doctorData?.ConsulationPrice || 0,
               startTime: availabilityData?.StartTime ?? availabilityData?.startTime,
               endTime: availabilityData?.EndTime ?? availabilityData?.endTime,
             };

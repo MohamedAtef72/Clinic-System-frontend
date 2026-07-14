@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Typography, CircularProgress, Alert, Pagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Rating, Stack, useTheme, useMediaQuery, Paper, Container, Grid, Drawer, IconButton, Skeleton } from "@mui/material";
 import { useDetailedDoctorAppointments, useUpdateAppointment } from "../../../features/appointments/hooks/useAppointments";
 import { useVisitDetails, useUpdateVisit } from "../../../features/appointments/hooks/useVisits";
+import { useDoctorProfile } from "../hooks/useDoctors";
 import BreadcrumbHeader from '../../../components/BreadcrumbHeader';
 import { DoctorAppointmentCard } from "../components/DoctorAppointmentCard";
 import AppointmentCardSkeleton from "../../appointments/components/skeletons/AppointmentCardSkeleton";
@@ -35,6 +36,10 @@ export default function DoctorAppointmentsPage() {
   const { data: appointmentsRes, isLoading: loadingDocs, error } = useDetailedDoctorAppointments(user?.id, statusFilter, pageNumber);
   const updateAppointmentMutation = useUpdateAppointment();
   const updateVisitMutation = useUpdateVisit();
+
+  const { data: doctorProfileRes } = useDoctorProfile(user?.id);
+  const doctorProfile = doctorProfileRes?.data || doctorProfileRes;
+  const doctorPrice = doctorProfile?.consulationPrice || doctorProfile?.ConsulationPrice || 0;
 
   // Conditionally fetch visit details when notes dialog is open
   const { data: visitDetailsData, isLoading: notesLoading } = useVisitDetails(activeVisitId, notesDialogOpen);
@@ -82,6 +87,7 @@ export default function DoctorAppointmentsPage() {
     try {
       const newVisitData = {
         ...visitDetails,
+        price: visitDetails.price || doctorPrice,
         doctorNotes: editNotes,
         medicine: editMedicine,
         visitStatus: "Completed",
@@ -120,7 +126,7 @@ export default function DoctorAppointmentsPage() {
 
   return (
     <>
-<Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", py: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#f9f8f5", py: { xs: 5, md: 5 }, pb: 8, fontFamily: "'Inter', sans-serif" }}>
         <Container maxWidth="xl">
 
           <BreadcrumbHeader currentPage="My Appointments">
@@ -198,7 +204,7 @@ export default function DoctorAppointmentsPage() {
                   {isEditMode && (
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, p: 2, bgcolor: GOLD_BG, borderRadius: 2, border: `1px solid ${GOLD}40` }}>
                       <Typography sx={{ color: TEXT_DARK, fontWeight: 700 }}>Consultation Status</Typography>
-                      <Typography sx={{ color: GOLD_DARK, fontWeight: 800, fontSize: "1.1rem" }}>{visitDetails.price} EGP</Typography>
+                      <Typography sx={{ color: GOLD_DARK, fontWeight: 800, fontSize: "1.1rem" }}>{visitDetails.price || doctorPrice} EGP</Typography>
                     </Box>
                   )}
                   <TextField
